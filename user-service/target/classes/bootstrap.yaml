@@ -1,25 +1,25 @@
-spring:
-  application:
-    name: user-service
-  profiles:
-    active: dev
-  cloud:
-    nacos:
-      config:
-        file-extension: yaml
-        server-addr: localhost:8848
-    loadbalancer:
-      nacos:
-        enabled: true
+#spring:
+#  application:
+#    name: user-service
+#  profiles:
+#    active: dev
+#  cloud:
+#    nacos:
+#      config:
+#        file-extension: yaml
+#        server-addr: localhost:8848
+#    loadbalancer:
+#      nacos:
+#        enabled: true
 #    sentinel:
 #      transport:
 #        dashboard: localhost:8858
 
-seata:
-  service:
-    varoup-mapping:
-      user-service-seata-service-group: default
-    grouplist:
-      default: localhost:7091
+#seata:
+#  service:
+#    vgroup-mapping:
+#      user-service-seata-service-group: default
+#    grouplist:
+#      default: localhost:7091
 
 

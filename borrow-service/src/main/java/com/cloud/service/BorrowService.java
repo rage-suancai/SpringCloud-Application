@@ -6,6 +6,4 @@ public interface BorrowService {
 
     UserBorrowDetail getUserBorrowDetailByUid(Integer uid);
 
-    boolean doBorrow(Integer uid, Integer bid);
-
 }

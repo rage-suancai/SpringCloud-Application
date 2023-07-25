@@ -15,9 +15,11 @@ spring:
 #      transport:
 #        dashboard: localhost:8858
 
-seata:
-  service:
-    varoup-mapping:
-      book-service-seata-service-group: default
-    grouplist:
-      default: localhost:7091
+#seata:
+#  service:
+#    vgroup-mapping:
+#      book-service-seata-service-group: default
+#    grouplist:
+#      default: localhost:7091
+
+

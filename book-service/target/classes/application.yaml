@@ -1,24 +1,22 @@
 #server:
 #  port: 8101
 
-#spring:
-#  application:
-#    name: book-service
-#  datasource:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://localhost:3306/cloudstudy?useSSL=false&serverTimezone=UTC
-#    username: root
-#    password: 123456
+spring:
+  application:
+    name: book-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/cloudstudy?useSSL=false&serverTimezone=UTC
+    username: root
+    password: 123456
+  session:
+    store-type: redis
+  redis:
+    host: localhost
+
 #  cloud:
 #    nacos:
 #      discovery:
 #        server-addr: localhost:8848
-
-#seata:
-#  service:
-#    vgroup-mapping:
-#      book-service-seata-service-group: default
-#    grouplist:
-#      default: localhost:7091
 
 
