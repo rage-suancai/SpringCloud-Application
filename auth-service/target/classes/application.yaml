@@ -1,0 +1,6 @@
+server:
+  port: 8500
+  servlet:
+    context-path: /sso
+
+

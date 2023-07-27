@@ -9,14 +9,23 @@ spring:
     url: jdbc:mysql://localhost:3306/cloudstudy?useSSL=false&serverTimezone=UTC
     username: root
     password: 123456
-  session:
-    store-type: redis
-  redis:
-    host: localhost
-
+#  session:
+#    store-type: redis
+#  redis:
+#    host: localhost
 #  cloud:
 #    nacos:
 #      discovery:
 #        server-addr: localhost:8848
+
+security:
+  oauth2:
+    client:
+      client-id: web
+      client-secret: 654321
+      access-token-uri: http://localhost:8500/sso/oauth/token
+      user-authorization-uri: http://localhost:8500/sso/oauth/authorize
+    resource:
+      token-info-uri: http://localhost:8500/sso/oauth/check_token
 
 

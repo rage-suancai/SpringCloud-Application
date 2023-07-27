@@ -234,11 +234,11 @@
                                .withUser("test").password(encoder.encode("123456")).roles("user");
                        
                    }
-                   
+
                    @Bean // 这里需要将AuthenticationManager注册为Bean 在OAuth配置中使用
                    @Override
-                   protected AuthenticationManager authenticationManager() throws Exception {
-                       return super.authenticationManagerBean();
+                   public AuthenticationManager authenticationManagerBean() throws Exception {
+                      return super.authenticationManagerBean();
                    }
                    
                }
@@ -317,12 +317,233 @@
 
 可以看到active为true 表示我们刚刚申请到的Token是有效的
 
+接着我们来测试一下第二种password模式 我们还需要提供具体的用户名和密码 授权模式定义为password即可:
 
+<img src="https://fast.itbaima.net/2023/03/06/jt5XPZKvRFqr73x.png"/>
 
+接着我们需要在请求头中添加Basic验证信息 这里我们直接填写id和secret即可:
 
+<img src="https://fast.itbaima.net/2023/03/06/K9ZpIv8SzcfsHd4.png"/>
 
+可以看到在请求头中自动生成了Basic验证相关内容:
 
+<img src="https://fast.itbaima.net/2023/03/06/JHxPKgFU5wY7SB8.png"/>
 
+<img src="https://fast.itbaima.net/2023/03/06/F3WU7XhqridywVn.png"/>
+
+响应成功 得到Token信息 并且这里还多出了一个refresh_token 这是用于刷新Token的 我们之后会进行讲解
+
+<img src="https://fast.itbaima.net/2023/03/06/zjuc2qxQmBas5r1.png"/>
+
+查询Token信息之后还可以看到登录的具体用户以及角色权限等
+
+接着我们来看隐式授权模式 这种模式我们需要在验证服务器上进行登录操作 而不是直接请求Token
+验证登录请求地址: http://localhost:8500/sso/oauth/authorize?client_id=web&response_type=token
+
+注意response_type一定要是token类型 这样才会直接返回Token 浏览器发起请求后 可以看到熟悉而又陌生的界面 没错
+实际上这里就是使用我们之前讲解的SpringSecurity进行登录 当然也可以配置一下记住我之类的功能 这里就不演示了:
+
+<img src="https://fast.itbaima.net/2023/03/06/OYeRQpEXFSoZMhc.png"/>
+
+但是登录之后我们发现出现了一个错误:
+
+<img src="https://fast.itbaima.net/2023/03/06/qLUkJFZau8eQ6WO.png"/>
+
+这是因为登录成功之后 验证服务器需要将结果给回客户端 所以需要提供客户端的回调地址 这样 浏览器就会被重定向到指定的回调地址并且请求中会携带Token信息 这里我们随便配置一个回调地址:
+
+```java
+               @Override
+               public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+                   
+                   clients
+                       .inMemory()
+                       .withClient("web")
+                       .secret(encoder.encode("654321"))
+                       .autoApprove(false)
+                       .scopes("book", "user", "borrow")
+                       .redirectUris("http://localhost:8201/login") // 可以写多个 当有多个时需要在验证请求中指定使用哪个地址进行回调
+                       .authorizedGrantTypes("client_credentials", "password", "implicit", "authorization_code", "refresh_token");
+                   
+               }
+```
+
+接着重启验证服务器 再次访问:
+
+<img src="https://fast.itbaima.net/2023/03/06/PnTwQhlYXDgBvry.png"/>
+
+可以看到这里会让我们选择哪些范围进行授权 就像我们在微信小程序中登录一样 会让我们授予用户信息权限, 支付权限, 信用查询权限等
+我们可以自由决定要不要给客户端授予访问这些资源的权限 这里我们全部选择授予:
+
+<img src="https://fast.itbaima.net/2023/03/06/p7nMEVZIKjXWAl5.png"/>
+
+授予之后 可以看到浏览器被重定向到我们刚刚指定的回调地址中 并且携带了Token信息 现在我们来校验一下看看:
+
+<img src="https://fast.itbaima.net/2023/03/06/g1JhS9WDfcz6QEK.png"/>
+
+可以看到 Token也是有效的
+
+最后我们来看看第四种最安全的授权码模式 这种模式其实流程和上面是一样的 但是请求的是code类型: http://localhost:8500/sso/oauth/authorize?client_id=web&response_type=code
+
+可以看到访问之后 依然会进入到回调地址 但是这时给的就是授权码了 而不是直接给Token 那么这个Token该怎么获取呢?
+
+<img src="https://fast.itbaima.net/2023/03/06/da4WseDt172hbLV.png"/>
+
+按照我们之前讲解的原理 我们需要携带授权码和secret一起请求 才能拿到Token 正常情况下是有由回调的服务器进行处理
+这里我们就在Postman中进行 我们复制刚刚得到的授权码 接口依然是localhost:8500/sso/oauth/token:
+
+<img src="https://fast.itbaima.net/2023/03/06/e1Zdt9IP7vp2zMO.png"/>
+
+可以看到结果也是正常返回了Token信息:
+
+<img src="https://fast.itbaima.net/2023/03/06/qY5kxgBWSzMJXco.png"/>
+
+这样我们四种最基本的Token请求方式就实现了
+
+最后还有一个是刷新令牌使用的 当我们的Token过期时 我们就可以使用这个refresh_token来申请一个新的Token:
+
+<img src="https://fast.itbaima.net/2023/03/06/d2ojclCLB3mQu7D.png"/>
+
+但是执行之后我们发现会直接出现一个内部错误:
+
+<img src="https://fast.itbaima.net/2023/03/06/BcFMIg4NqCx8kdh.png"/>
+
+<img src="https://fast.itbaima.net/2023/03/06/cA9WF1KxyUDZ8Bi.png"/>
+
+查看日志发现 这里还需要我们单独配置一个UserDetailsService 我们直接把Security中的实例注册为Bean:
+
+```java
+               @Bean
+               @Override
+               public UserDetailsService userDetailsServiceBean() throws Exception {
+                  return super.userDetailsServiceBean();
+               }
+```
+
+然后在Endpoint中设置:
+
+```java
+               @Resource
+               private UserDetailsService service;
+               
+               @Override
+               public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
+
+                  endpoints
+                          .userDetailsService(service)
+                          .authenticationManager(manager);
+
+               }
+```
+
+最后再次尝试刷新Token:
+
+<img src="https://fast.itbaima.net/2023/03/06/QWEwzpiq7FXnv3f.png"/>
+
+OK 成功刷新Token 返回了一个新的
+
+### 基于@EnableOAuth2Sso实现
+前面我们将验证服务器已经搭建完成了 现在我们就来实现一下单点登录吧 SpringCloud为我们提供了客户端的直接实现
+我们只需要添加一个注解和少量配置即可将我们的服务作为一个单点登录应用 使用的是第四种授权码模式
+
+一句话来说就是 这种模式只是将验证方式由原来的默认登录形式改变为了统一在授权服务器登录的形式
+
+首先还是依赖:
+
+```xml
+               <dependency>
+                   <groupId>org.springframework.boot</groupId>
+                   <artifactId>spring-boot-starter-security</artifactId>
+               </dependency>
+               
+               <dependency>
+                   <groupId>org.springframework.cloud</groupId>
+                   <artifactId>spring-cloud-starter-oauth2</artifactId>
+                   <version>2.2.5.RELEASE</version>
+               </dependency>
+```
+
+我们只需要直接在启动类上添加即可:
+
+```java
+               @EnableOAuth2Sso
+               @SpringBootApplication
+               public class BookApplication {
+
+                  public static void main() {
+                     SpringApplication.run(BookApplciation.class, args);
+                  }
+
+               }
+```
+
+我们不需要进行额外的配置类 因为这个注解已经帮我们做了:
+
+```java
+               @Target({ElementType.TYPE})
+               @Retention(RetentionPolicy.RUNTIME)
+               @Documented
+               @EnableOAuth2Client
+               @EnableConfigurationProperties({OAuth2SsoProperties.class})
+               @Import({OAuth2SsoDefaultConfiguration.class, OAuth2SsoCustomConfiguration.class, ResourceServerTokenServicesConfiguration.class})
+               public @interface EnableOAuth2Sso {
+               }
+```
+
+可以看到它直接注册了OAuth2SsoDefaultConfiguration 而这个类就是帮助我们对Security进行配置的:
+
+```java
+               @Configuration
+               @Conditional({NeedsWebSecurityCondition.class})
+               public class OAuth2SsoDefaultConfiguration extends WebSecurityConfigurerAdapter {
+               // 直接继承的WebSecurityConfigurerAdapter 帮我们把验证设置都写好了
+               private final ApplicationContext applicationContext;
+               
+                   public OAuth2SsoDefaultConfiguration(ApplicationContext applicationContext) {
+                       this.applicationContext = applicationContext;
+                   }
+```
+                   
+接着我们需要在配置文件中配置我们的验证服务器相关信息:
+
+```yaml
+                security:
+                  oauth2:
+                    client:
+                      # 不多说了
+                      client-id: web
+                      client-secret: 654321
+                      # Token获取地址
+                      access-token-uri: http://localhost:8500/sso/oauth/teken
+                      # 验证页面地址
+                      user-authorization-uri: http://localhost:8500/sso/oauth/authorize
+                    resource:
+                       # Token信息获取和校验地址
+                      token-info-uri: http://localhost:8500/sso/oauth/check_token
+```
+
+现在我们就开启图书服务 调用图书接口:
+
+<img src="https://fast.itbaima.net/2023/03/06/DrVSZtdKNCoMucx.png"/>
+
+可以看到在发现没有登录验证时 会直接跳转到授权页面 进行授权登录 之后才可以继续访问图书服务:
+
+<img src="https://fast.itbaima.net/2023/03/06/nsJGmxcOVYXDUqd.png"/>
+
+那么用户信息呢? 是否也一并保存过来了? 我们这里直接获取一下SpringSecurity的Context查看用户信息 获取方式跟我们之前讲解的是一样的:
+
+```java 
+               @RequestMapping("/book/{bid}")
+               Book findBookById(@PathVariable("bid") int bid){
+    
+                   // 通过SecurityContextHolder将用户信息取出
+                   SecurityContext context = SecurityContextHolder.getContext();
+                   System.out.println(context.getAuthentication());
+                   return service.getBookById(bid);
+                   
+               }
+```
+
+<img src=""/>
 
 
 

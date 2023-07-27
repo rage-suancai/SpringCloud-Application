@@ -9,11 +9,10 @@ spring:
     url: jdbc:mysql://localhost:3306/cloudstudy?useSSL=false&serverTimezone=UTC
     username: root
     password: 123456
-  session:
-    store-type: redis
-  redis:
-    host: localhost
-
+#  session:
+#    store-type: redis
+#  redis:
+#    host: localhost
 #  cloud:
 #    nacos:
 #      discovery:

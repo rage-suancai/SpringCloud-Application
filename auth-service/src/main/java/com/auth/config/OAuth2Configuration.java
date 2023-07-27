@@ -2,6 +2,7 @@ package com.auth.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -17,7 +18,8 @@ public class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
 
     @Resource
     private AuthenticationManager manager;
-
+    /*@Resource
+    private UserDetailsService service;*/
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     @Override
@@ -29,6 +31,7 @@ public class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
                 .secret(encoder.encode("654321"))
                 .autoApprove(false)
                 .scopes("book", "user", "borrow")
+                .redirectUris("http://localhost:8201/login")
                 .authorizedGrantTypes("client_credentials", "password", "implicit", "authorization_code", "refresh_token");
 
     }
@@ -47,6 +50,7 @@ public class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 
         endpoints
+                //.userDetailsService(service);
                 .authenticationManager(manager);
 
     }
