@@ -31,7 +31,7 @@ public class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
                 .secret(encoder.encode("654321"))
                 .autoApprove(false)
                 .scopes("book", "user", "borrow")
-                .redirectUris("http://localhost:8201/login")
+                .redirectUris("http://localhost:8101/login", "http://localhost:8201/login", "http://localhost:8301/login")
                 .authorizedGrantTypes("client_credentials", "password", "implicit", "authorization_code", "refresh_token");
 
     }

@@ -543,7 +543,53 @@ OK 成功刷新Token 返回了一个新的
                }
 ```
 
-<img src=""/>
+<img src="https://fast.itbaima.net/2023/03/06/y1VYRC9tmOv854u.png"/>
+
+这里使用的不是之前的UsernamePasswordAuthenticationToken也不是RememberMeAuthenticationToken
+而是新的OAuth2Authentication 它保存了验证服务器的一些信息 以及经过我们之前的登录流程之后 验证服务器发放给客户端的Token信息
+并通过Token信息在验证服务器进行验证获取用户信息 最后保存到Session中 表示用户已验证 所以本质上还是要依赖浏览器存Cookie的
+
+接下来我们将所有的服务都使用这种方式进行验证 别忘了把重定向地址给所有服务都加上:
+
+```java
+               @Override
+               public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+                   
+                   clients
+                           .inMemory()
+                           .withClient("web")
+                           .secret(encoder.encode("654321"))
+                           .autoApprove(true) // 这里把自动审批开了 就不用再去手动选同意了
+                           .scopes("book", "user", "borrow")
+                           .redirectUris("http://localhost:8101/login", "http://localhost:8201/login", "http://localhost:8301/login")
+                           .authorizedGrantTypes("client_credentials", "password", "implicit", "authorization_code", "refresh_token");
+                           
+               }
+```
+
+这样我们就可以实现只在验证服务器登录 如果登录过其它的服务都可以访问了
+
+但是我们发现了一个问题 就是由于SESSION不同步 每次切换不同的服务进行访问都会重新导致验证访服务去验证一次:
+
+<img src="https://fast.itbaima.net/2023/03/06/7zbqlOrSCVRdQ4y.png"/>
+
+这里有两个方案:
+- 像之前一样做SESSION统一存储
+- 设置context-path路径 每个服务单独设置 就不会打架了
+
+但是这样依然没法解决服务间调用的问题 所以仅仅依靠单点登录的模式不太行
+
+### 基于@EnableResourceServer实现
+前面我们讲解了将我们的服务作为单点登录应用直接实现单点登录 那么现在我们如果是以第三方应用进行访问呢? 这时我们就需要将我们的服务作为资源服务了
+作为资源服务就不会再提供验证的过程 而是直接要求请求时携带Token 而验证过程我们这里就继续用Postman来完成 这才是我们常见的模式
+
+一句话来说 跟上面相比 我们只需要携带Token就能访问这些资源服务器了 客户端被独立出来 用于携带Token去访问这些服务
+
+我们也只需要添加一个注解和少量配置即可:
+
+```java
+
+```
 
 
 
