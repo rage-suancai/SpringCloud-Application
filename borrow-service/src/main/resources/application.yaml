@@ -22,6 +22,11 @@ spring:
       nacos:
         enabled: true
 
+feign:
+  oauth2:
+    enabled: true
+    load-balanced: true
+
 #security:
 #  oauth2:
 #    client:

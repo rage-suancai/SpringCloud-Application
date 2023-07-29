@@ -11,4 +11,10 @@ spring:
       discovery:
         server-addr: localhost:8848
 
+security:
+  oauth2:
+    resource:
+      jwt:
+        key-value: yxsnb
+
 

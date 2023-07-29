@@ -1,8 +1,0 @@
-2023-07-16 00:06:14,823 INFO [NACOS-RAFT] datum is changed, key: com.alibaba.nacos.naming.iplist.ephemeral.public##DEFAULT_GROUP@@borrow-service, value: {"instanceList":[]}
-
-2023-07-16 00:06:14,845 INFO [NACOS-RAFT] datum is changed, key: com.alibaba.nacos.naming.iplist.ephemeral.public##DEFAULT_GROUP@@book-service, value: {"instanceList":[]}
-
-2023-07-16 00:06:14,874 INFO [NACOS-RAFT] datum is changed, key: com.alibaba.nacos.naming.iplist.ephemeral.public##DEFAULT_GROUP@@user-service, value: {"instanceList":[]}
-
-2023-07-16 00:06:19,460 WARN protect threshold reached, return all ips, service: DEFAULT_GROUP@@borrow-service
-

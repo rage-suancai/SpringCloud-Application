@@ -772,18 +772,173 @@ OK 成功刷新Token 返回了一个新的
 
 现在我们来把它替换为Feign 老样子 两个客户端:
 
+```java
+               @FeignClient("user-service")
+               public interface UserClient {
+                   
+                   @RequestMapping("/user/{uid}")
+                   User getUserById(@PathVariable("uid") int uid);
+                   
+               }
+```
+```java
+               @FeignClient("book-service")
+               public interface BookClient {
+               
+                   @RequestMapping("/book/{bid}")
+                   Book getBookById(@PathVariable("bid") int bid);
+                   
+               }
+```
 
+但是配置完成之后 又出现刚刚的问题了 OpenFeign也没有携带Token进行访问:
 
+<img src="https://fast.itbaima.net/2023/03/06/EzWuaAJgNLi3sdF.png"/>
 
+那么怎么配置Feign携带Token访问呢? 遇到这种问题直接去官方查: https://docs.spring.io/spring-cloud-openfeign/docs/current/reference/html/#oauth2-support 非常简单 两个配置就搞定:
 
+```yaml
+                feign:
+                   oauth2:
+                      # 开启Oauth支持 这样就会在请求头中携带Token了
+                      enabled: true
+                      # 同时开启负载均衡支持
+                      load-balanced: true
+```
 
+重启服务器 可以看到结果OK了:
 
+<img src="https://fast.itbaima.net/2023/03/06/zgEJF7AeHw8iGIZ.png"/>
 
+这样我们就成功将之前的三个服务作为资源服务器了 注意和我们上面的作为客户端是不同的 将服务直接作为客户端相当于只需要验证通过即可
+并且还是要保存Session信息 相当于只是将登录流程换到统一的验证服务器上进行罢了 而将其作为资源服务器 那么就需要另外找客户端
+(可以是浏览器, 小程序, App, 第三方服务等)来访问 并且也是需要先进行验证然后再通过携带Token进行访问 这种模式是我们比较常见的模式
 
+### 使用JWT存储Token
+官网: https://jwt.io
 
+JSON Web Token令牌(JWT)是一个开放标准(RFC 7519) 它定义了一种紧凑和自成一体的方式 用于在各方之间作为JSON对象安全地传输信息
+这些信息可以被验证和信任 因为它是数字签名的 JWT可以使用密钥(使用HMAC算法)或使用RSA或ECDSA进行公钥/私钥对进行签名
 
+实际上 我们之前都是携带Token向资源服务器发起请求后 资源服务器由于不知道我们Token的用户信息 所以要向验证服务器询问此Token的认证信息 这样才能得到Token代表的用户信息
+所以需要向验证服务器询问此Token的认证信息 这样才能得到Token代表的用户信息 但是各位是否考虑过 如果每次用户请求都去查询用户信息 那么在大量请求下 验证服务器的压力可能会非常的大
+而使用JWT之后 Token会直接保存用户信息 这样资源服务器就不再需要询问验证服务器 自行就可以完成解析 我们的目标是不联系验证服务器就能直接完成验证
 
+JWT令牌的格式如下:
 
+<img src="https://fast.itbaima.net/2023/03/07/Xu8lxYhKoJNr6it.png"/>
 
+一个JWT令牌由3部分组成: 标头(Header), 有效载荷(Payload)和签名(Signature) 在传输的时候 会将JWT的三部分分别进行Base64编码后用.进行连接形成最终需要传输的字符串
+- **标头**: 包含一些元数据信息 比如JWT签名所使用的加密算法 还有类型 这里统一都是JWT
 
+- **有效载荷**: 包含用户名称, 令牌发布时间, 过期时间, JWT ID等 当然我们也可以自定义添加字段 我们的用户信息一般都在这里存放
 
+- **签名**: 首先需要指定一个密钥 该密钥仅仅保存在服务器中 保证不能让其他用户知道 然后使用Header中指定的算法对Header和Payload进行base64加密之后的结果通过密钥计算哈希值 然后得出一个签名哈希 这个会用于之后验证内容是否被篡改
+
+这里还是补充一下一些概念 因为很多东西都是我们之前没有接触过的:
+
+- **Base64**: 就是包括小写字母a-z, 大写字母A-Z, 数字0-9, 符号"+", "/"一共64个字符的字符集(末尾还有1个或多个=用来凑够字节数) 任何的符号都可以转换成这个字符集中的字符
+              这个转换过程就叫做Base64编码 编码之后会生成只包含上述64个字符的字符串 相反 如果需要原本的内容 我们也可以进行Base64解码 回到原有的样子
+
+```java
+               public void test(){
+               
+                   String str = "你们可能不知道只用20万赢到578万是什么概念";
+                   // Base64不只是可以对字符串进行编码 任何byte[]数据都可以 编码结果可以是byte[] 也可以是字符串
+                   String encodeStr = Base64.getEncoder().encodeToString(str.getBytes());
+                   System.out.println("Base64编码后的字符串: "+encodeStr);
+               
+                   System.out.println("解码后的字符串: "+new String(Base64.getDecoder().decode(encodeStr)));
+                   
+               }
+```
+
+注意Base64不是加密算法 只是一种信息的编码方式而已
+
+- **加密算法**: 加密算法分为对称加密和非对称加密 其中对称加密(Symmetric Cryptography)比较好理解 就像一把锁配了两把钥匙一样 这两把钥匙你和别人都有一把 然后你们直接传递数据 都会把数据用锁给锁上 就算传递的途中有人把数据窃取了
+               也没办法解密 因为钥匙只有你和对方有 没有钥匙无法进行解密 但是这样有个问题 既然解密的关键在于钥匙本身 那么如果有人不仅窃取了数据 而且对方那边的治安也不好 于是顺手偷着了钥匙 那么你们之间发的数据不就凉凉了吗?
+               因此 非对称加密(Asymmetric Cryptography)算法出现了 它并不是直接生成一把钥匙 而是生成一个公钥和一个私钥 私钥只能由你保管 而公钥交给对方或是你要发送的任何人都行 现在你需要把数据传给对方 那么就需要使用私钥进行加密
+               但是 这个数据只能使用对应的公钥进行解密 相反 如果对方需要给你发送数据 那么就需要用公钥进行加密 而数据只能使用私钥进行解密 这样的话就算对方的公钥被窃取 那么别人发给你的数据也没办法解密出来 因为需要私钥才能解密 而只有你才有私钥
+               因此 非对称加密的安全性会更高一些 包括HTTPS的隐私信息正是使用非对称加密来保障传输数据的安全(当然HTTPS并不是单纯地使用非对称加密完成的 感兴趣的可以去了解一下)
+               对称加密和非对称加密都有很多的算法 比如对称加密 就有: DES, IDEA, RC2, 非对称加密有: RSA, DAS, ECC
+
+- **不可逆加密算法**: 常见的不可逆加密算法有MD5, HMAC, SHA-224, SHA-256, SHA-384,和SHA-512, 其中SHA-224, SHA-256, SHA-384,和SHA-512我们可以统称为SHA2加密算法 SHA加密算法的安全性要比MD5更高 而SHA2加密算法比SHA1的要高
+                    其中SHA后面的数字表示的是加密的字符串长度 SHA1默认会产生一个160位的信息摘要 经过不可逆加密算法得到的加密结果 是无法解密回去的 也就是说加密出来是什么就是什么了 本质上 其实就是一种哈希函数 用于对一段信息产生摘要 以防止被篡改
+
+这里我们就可以利用JWT 将我们的Token采用新的方式进行存储:
+
+<img src="https://fast.itbaima.net/2023/03/07/W95CFKAmd1wfgSJ.png"/>
+
+这里我们使用最简单的一种方式 对称加密 我们需要对验证服务器进行一些修改:
+
+```java
+               @Bean
+               public JwtAccessTokenConverter tokenConverter(){ // Token转换器 将其转换为JWT
+               
+                   JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+                   converter.setSigningKey("yxsnb"); // 这个是对称密钥 一会资源服务器那边也要指定为这个
+                   return converter;
+                   
+               }
+               
+               @Bean
+               public TokenStore tokenStore(JwtAccessTokenConverter converter){ // Token存储方式现在改为JWT存储
+                   return new JwtTokenStore(converter); // 传入刚刚定义好的转换器
+               }
+```
+```java
+               @Resource
+               private TokenStore store;
+               @Resource
+               private JwtAccessTokenConverter converter;
+               
+               private AuthorizationServerTokenServices serverTokenServices(){ // 这里对AuthorizationServerTokenServices进行一下配置
+               
+                   DefaultTokenServices services = new DefaultTokenServices();
+                   services.setSupportRefreshToken(true); // 允许Token刷新
+                   services.setTokenStore(store); // 添加刚刚的TokenStore
+                   services.setTokenEnhancer(converter); // 添加Token增强 其实就是JwtAccessTokenConverter 增强是添加一些自定义的数据到JWT中
+                   return services;
+                   
+               }
+               
+               @Override
+               public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
+               
+                   endpoints
+                           .tokenServices(serverTokenServices()) // 设定为刚刚配置好的AuthorizationServerTokenServices
+                           .userDetailsService(service)
+                           .authenticationManager(manager);
+                           
+               }
+```
+
+然后我们就可以重启验证服务器了:
+
+<img src="https://fast.itbaima.net/2023/03/07/C6OteoFghrxpYjQ.png"/>
+
+可以看到成功获取了AccessToken 但是这里的格式跟我们之前的格式就大不相同了 因为现在它是JWT令牌 我们可以对其进行一下Base64解码:
+
+<img src="https://fast.itbaima.net/2023/03/07/CUMkrRfgOthZKVz.png"/>
+
+可以看到所有的验证信息包含在内 现在我们对资源服务器进行配置:
+
+```yaml
+                security:
+                  oauth2:
+                    resource:
+                      jwt:
+                        key-value: yxsnb # 注意这里要跟验证服务器的密钥一致 这样算出来的签名才会一致
+```
+
+然后启动资源服务器 请求一下接口试试看:
+
+<img src="https://fast.itbaima.net/2023/03/07/kOpRlTB7SPtQa4y.png"/>
+
+请求成功 得到数据:
+
+<img src="https://fast.itbaima.net/2023/03/07/aicW89KezTSZ7f5.png"/>
+
+注意如果Token有误 那么会得到:
+
+<img src="https://fast.itbaima.net/2023/03/07/4wFZx8kNY5WHnvy.png"/>

@@ -1,6 +1,0 @@
-2023-07-15 17:51:56,822 INFO [dump-all-ok] user-service-dev.yaml+DEFAULT_GROUP, 1689256310934, length=214, md5=c4f0b646cdb8ca77019bc3608bd91656
-
-2023-07-15 17:51:56,823 INFO [dump-all-ok] book-service-dev.yaml+DEFAULT_GROUP, 1689253796714, length=194, md5=f2b5892bbd66c238bb17f9c571f5abe9
-
-2023-07-15 17:51:56,823 INFO [dump-all-ok] borrow-service-dev.yaml+DEFAULT_GROUP, 1689254053310, length=194, md5=f2b5892bbd66c238bb17f9c571f5abe9
-

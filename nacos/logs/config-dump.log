@@ -1,36 +1,12 @@
-2023-07-21 01:13:01,910 INFO [dump-all-ok] user-service-dev.yaml+DEFAULT_GROUP, 1689865432049, length=365, md5=88c7043ebfa76d8e7f7db2a9c356167d
+2023-07-29 16:15:46,400 INFO [dump-all-ok] user-service-dev.yaml+DEFAULT_GROUP, 1689873967980, length=365, md5=88c7043ebfa76d8e7f7db2a9c356167d
 
-2023-07-21 01:13:01,911 INFO [dump-all-ok] book-service-dev.yaml+DEFAULT_GROUP, 1689865441427, length=336, md5=7f0ef82640b2a3544512cc8f002f3f09
+2023-07-29 16:15:46,401 INFO [dump-all-ok] book-service-dev.yaml+DEFAULT_GROUP, 1689873979521, length=336, md5=7f0ef82640b2a3544512cc8f002f3f09
 
-2023-07-21 01:13:01,912 INFO [dump-all-ok] borrow-service-dev.yaml+DEFAULT_GROUP, 1689865450475, length=360, md5=59d26d449d1208a093a4f927c643b162
+2023-07-29 16:15:46,401 INFO [dump-all-ok] borrow-service-dev.yaml+DEFAULT_GROUP, 1689873997226, length=360, md5=59d26d449d1208a093a4f927c643b162
 
-2023-07-21 01:13:40,337 INFO [dump-task] add task. groupKey=user-service-dev.yaml+DEFAULT_GROUP, taskKey=user-service-dev.yaml+DEFAULT_GROUP++false+null
+2023-07-29 20:36:37,741 INFO [dump-all-ok] user-service-dev.yaml+DEFAULT_GROUP, 1689873967980, length=365, md5=88c7043ebfa76d8e7f7db2a9c356167d
 
-2023-07-21 01:13:48,097 INFO [dump-task] add task. groupKey=book-service-dev.yaml+DEFAULT_GROUP, taskKey=book-service-dev.yaml+DEFAULT_GROUP++false+null
+2023-07-29 20:36:37,741 INFO [dump-all-ok] book-service-dev.yaml+DEFAULT_GROUP, 1689873979521, length=336, md5=7f0ef82640b2a3544512cc8f002f3f09
 
-2023-07-21 01:13:59,050 INFO [dump-task] add task. groupKey=borrow-service-dev.yaml+DEFAULT_GROUP, taskKey=borrow-service-dev.yaml+DEFAULT_GROUP++false+null
-
-2023-07-21 01:19:16,347 INFO [dump-all-ok] user-service-dev.yaml+DEFAULT_GROUP, 1689873220252, length=353, md5=ec51ff31d01e4cab9f92d89ddfce431d
-
-2023-07-21 01:19:16,347 INFO [dump-all-ok] book-service-dev.yaml+DEFAULT_GROUP, 1689873228090, length=324, md5=c675638747ed90363802b4e39f28cdd9
-
-2023-07-21 01:19:16,347 INFO [dump-all-ok] borrow-service-dev.yaml+DEFAULT_GROUP, 1689873239043, length=348, md5=e3edc872a8e759bf2b493093ec56b770
-
-2023-07-21 01:26:08,055 INFO [dump-task] add task. groupKey=user-service-dev.yaml+DEFAULT_GROUP, taskKey=user-service-dev.yaml+DEFAULT_GROUP++false+null
-
-2023-07-21 01:26:19,529 INFO [dump-task] add task. groupKey=book-service-dev.yaml+DEFAULT_GROUP, taskKey=book-service-dev.yaml+DEFAULT_GROUP++false+null
-
-2023-07-21 01:26:37,233 INFO [dump-task] add task. groupKey=borrow-service-dev.yaml+DEFAULT_GROUP, taskKey=borrow-service-dev.yaml+DEFAULT_GROUP++false+null
-
-2023-07-21 12:55:21,142 INFO [dump-all-ok] user-service-dev.yaml+DEFAULT_GROUP, 1689873967980, length=365, md5=88c7043ebfa76d8e7f7db2a9c356167d
-
-2023-07-21 12:55:21,142 INFO [dump-all-ok] book-service-dev.yaml+DEFAULT_GROUP, 1689873979521, length=336, md5=7f0ef82640b2a3544512cc8f002f3f09
-
-2023-07-21 12:55:21,143 INFO [dump-all-ok] borrow-service-dev.yaml+DEFAULT_GROUP, 1689873997226, length=360, md5=59d26d449d1208a093a4f927c643b162
-
-2023-07-21 12:57:29,521 INFO [dump-all-ok] user-service-dev.yaml+DEFAULT_GROUP, 1689873967980, length=365, md5=88c7043ebfa76d8e7f7db2a9c356167d
-
-2023-07-21 12:57:29,522 INFO [dump-all-ok] book-service-dev.yaml+DEFAULT_GROUP, 1689873979521, length=336, md5=7f0ef82640b2a3544512cc8f002f3f09
-
-2023-07-21 12:57:29,522 INFO [dump-all-ok] borrow-service-dev.yaml+DEFAULT_GROUP, 1689873997226, length=360, md5=59d26d449d1208a093a4f927c643b162
+2023-07-29 20:36:37,743 INFO [dump-all-ok] borrow-service-dev.yaml+DEFAULT_GROUP, 1689873997226, length=360, md5=59d26d449d1208a093a4f927c643b162
 

@@ -1,9 +1,0 @@
-2023-07-19 00:52:54,907|169.254.212.239|borrow-service|DEFAULT_GROUP|null|unknown|-1|pull|not-found|-1|127.0.0.1
-2023-07-19 00:52:54,935|169.254.212.239|borrow-service.yaml|DEFAULT_GROUP|null|unknown|-1|pull|not-found|-1|127.0.0.1
-2023-07-19 00:52:54,969|169.254.212.239|borrow-service-dev.yaml|DEFAULT_GROUP|null|unknown|1689587237761|pull|ok|111937208|127.0.0.1
-2023-07-19 00:52:57,686|169.254.212.239|book-service|DEFAULT_GROUP|null|unknown|-1|pull|not-found|-1|127.0.0.1
-2023-07-19 00:52:57,697|169.254.212.239|book-service.yaml|DEFAULT_GROUP|null|unknown|-1|pull|not-found|-1|127.0.0.1
-2023-07-19 00:52:57,704|169.254.212.239|book-service-dev.yaml|DEFAULT_GROUP|null|unknown|1689253796714|pull|ok|445380990|127.0.0.1
-2023-07-19 00:53:00,879|169.254.212.239|user-service|DEFAULT_GROUP|null|unknown|-1|pull|not-found|-1|127.0.0.1
-2023-07-19 00:53:00,889|169.254.212.239|user-service.yaml|DEFAULT_GROUP|null|unknown|-1|pull|not-found|-1|127.0.0.1
-2023-07-19 00:53:00,893|169.254.212.239|user-service-dev.yaml|DEFAULT_GROUP|null|unknown|1689256310934|pull|ok|442869959|127.0.0.1
