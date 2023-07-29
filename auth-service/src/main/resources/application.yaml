@@ -3,4 +3,12 @@ server:
   servlet:
     context-path: /sso
 
+spring:
+  application:
+    name: auth-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+
 

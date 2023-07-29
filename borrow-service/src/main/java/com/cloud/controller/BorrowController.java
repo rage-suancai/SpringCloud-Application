@@ -15,7 +15,7 @@ public class BorrowController {
     private BorrowService borrowService;
     private int BorrowCount = 0;
 
-    @GetMapping("/api/borrow1/{uid}")
+    @GetMapping("/api/borrow/{uid}")
     public UserBorrowDetail getUserBorrowDetailByUid1(@PathVariable("uid") Integer uid) {
 
         int count = BorrowCount++; System.err.println("调用了借阅服务" + count + "次");

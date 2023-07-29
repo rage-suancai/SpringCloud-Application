@@ -588,9 +588,189 @@ OK 成功刷新Token 返回了一个新的
 我们也只需要添加一个注解和少量配置即可:
 
 ```java
-
+                @EnableResourceServer
+                @SpringBootApplication
+                public class BookApplication {
+                
+                   public static void main(String[] args) {
+                
+                      SpringApplication.run(BookApplication.class, args);
+                
+                   }
+                
+                }
 ```
 
+配置中只需要:
+
+```yaml
+                security:
+                oauth2:
+                   client:
+                      # 基操
+                      client-id: web
+                      client-secret: 654321
+                   resource:
+                      # 因为资源服务器得验证你的Token是否有访问此资源的权限以及用户信息 所以只需要一个验证地址
+                      token-info-uri: http://localhost:8500/sso/oauth/check_token
+```
+
+配置完成后 我们启动服务器 直接访问会发现:
+
+<img src="https://fast.itbaima.net/2023/03/06/QiZmqznyMxNpETk.png"/>
+
+这是由于我们的请求头中没有携带Token信息 现在有两种方式可以访问此资源:
+- 在URL后面添加access_token请求参数 值为Token值
+- 在请求头中添加Authorization 值为Bearer + Token值
+
+我们先来试试看最简单的一种:
+
+<img src="https://fast.itbaima.net/2023/03/06/Np6PKCZD2kAdmtf.png"/>
+
+另一种我们需要使用Postman来完成:
+
+<img src="https://fast.itbaima.net/2023/03/06/ypR3G7DxsYicMQI.png"/>
+
+添加验证信息后 会帮助我们转换成请求头信息:
+
+<img src="https://fast.itbaima.net/2023/03/06/qPHDU1dXgC7srn3.png"/>
+
+<img src="https://fast.itbaima.net/2023/03/06/6IeMvTcCKdfbUlV.png"/>
+
+这样我们就将资源服务器搭建完成了
+
+我们接着来看如何对资源服务器进行深度自定义 我们可以为其编写一个配置类 比如我们现在希望用户授权了某个Scope才可以访问此服务:
+
+```java
+               @Configuration
+               public class ResourceConfiguration extends ResourceServerConfigurerAdapter { // 继承此类进行高度自定义
+               
+                   @Override
+                   public void configure(HttpSecurity http) throws Exception { // 这里也有HttpSecurity对象 方便我们配置SpringSecurity
+                       
+                       http
+                               .authorizeRequests()
+                               .anyRequest().access("#oauth2.hasScope('lbwnb')"); // 添加自定义规则
+                               // Token必须要有我们自定义scope授权才可以访问此资源
+                      
+                   }
+                   
+               }
+```
+
+可以看到当没有对应的scope授权时 那么会直接返回insufficient_scope错误:
+
+<img src="https://fast.itbaima.net/2023/03/06/5T4d39YkcZIomvD.png"/>
+
+不知道各位是否有发现 实际上资源服务器完全没有必要将Security的信息保存在Session中了 因为现在只需要将Token告诉资源服务器 那么 资源服务器就可以联系验证服务器
+得到用户信息 就不需要使用之前的Session存储机制了 所以你会发现HttpSession中没有SPRING_SECURITY_CONTEXT 现在Security信息都是通过连接资源服务器获取
+
+接着我们将所有的服务都进行实现资源服务
+
+但是还有一个问题没有解决 我们在使用RestTemplate进行服务间的远程调用时 会得到以下错误:
+
+<img src="https://fast.itbaima.net/2023/03/06/k3LmR9E7UBtVA5x.png"/>
+
+实际上这是因为在服务调用时没有携带Token信息 我们得想个办法把用户传来的Token信息在进行远程调用时也携带上 因此
+我们可以直接使用OAuth2RestTemplate 它会在请求其它服务时携带当前请求的Token信息 它继承自RestTemplate 这里我们直接定义一个Bean:
+
+```java
+               @Configuration
+               public class WebConfiguration {
+                   
+                   @Resource
+                   private OAuth2ClientContext context;
+                   
+                   @Bean
+                   public OAuth2RestTemplate restTemplate() {
+                       return new OAuth2RestTemplate(new ClientCredentialsResourceDetails(), context);
+                   }
+                   
+               }
+```
+
+接着我们直接替换掉之前的RestTemplate即可:
+
+```java
+               @Service
+               public class BorrowServiceImpl implements BorrowService {
+               
+                   @Resource
+                   private BorrowMapper mapper;
+                   @Resource
+                   private OAuth2RestTemplate template;
+               
+                   @Override
+                   public UserBorrowDetail getUserBorrowDetailByUid(int uid) {
+                   
+                       List<Borrow> borrow = mapper.getBorrowsByUid(uid);
+                       
+                       User user = template.getForObject("http://localhost:8101/user/"+uid, User.class);
+                       // 获取每一本书的详细信息
+                       List<Book> bookList = borrow
+                               .stream()
+                               .map(b -> template.getForObject("http://localhost:8201/book/"+b.getBid(), Book.class))
+                               .collect(Collectors.toList());
+                       return new UserBorrowDetail(user, bookList);
+                       
+                   }
+                   
+               }
+```
+
+可以看到服务成功调用了:
+
+<img src="https://fast.itbaima.net/2023/03/06/mvKqyJk7P1FCQSl.png"/>
+
+现在我们来将Nacos加入 并通过Feign实现远程调用
+
+依赖还是贴一下 不然找不到:
+
+```xml
+               <dependency>
+                   <groupId>com.alibaba.cloud</groupId>
+                   <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                   <version>2021.0.1.0</version>
+                   <type>pom</type>
+                   <scope>import</scope>
+               </dependency>
+
+               <dependency>
+                   <groupId>com.alibaba.cloud</groupId>
+                   <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+               </dependency>
+               
+               <dependency>
+                   <groupId>org.springframework.cloud</groupId>
+                   <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+               </dependency>
+```
+
+所有服务都已经注册成功了:
+
+<img src="https://fast.itbaima.net/2023/03/06/BqkomFVGK7wv64X.png"/>
+
+接着我们配置一下借阅服务的负载均衡:
+
+```java
+               @Configuration
+               public class WebConfiguration {
+               
+                   @Resource
+                   private OAuth2ClientContext context;
+               
+                   @LoadBalanced // 和RestTemplate一样直接添加注解就行了
+                   @Bean
+                   public OAuth2RestTemplate restTemplate(){
+                       return new OAuth2RestTemplate(new ClientCredentialsResourceDetails(), context);
+                   }
+                   
+               }
+```
+
+<img src="https://fast.itbaima.net/2023/03/06/PZkS8GyU1jhpIrz.png"/>
+
+现在我们来把它替换为Feign 老样子 两个客户端:
 
 
 

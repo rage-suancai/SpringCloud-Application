@@ -13,18 +13,26 @@ spring:
 #    store-type: redis
 #  redis:
 #    host: localhost
-#  cloud:
-#    nacos:
-#      discovery:
-#        server-addr: localhost:8848
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+
+#security:
+#  oauth2:
+#    client:
+#      client-id: web
+#      client-secret: 654321
+#      access-token-uri: http://localhost:8500/sso/oauth/token
+#      user-authorization-uri: http://localhost:8500/sso/oauth/authorize
+#    resource:
+#      token-info-uri: http://localhost:8500/sso/oauth/check_token
 
 security:
   oauth2:
     client:
       client-id: web
       client-secret: 654321
-      access-token-uri: http://localhost:8500/sso/oauth/token
-      user-authorization-uri: http://localhost:8500/sso/oauth/authorize
     resource:
       token-info-uri: http://localhost:8500/sso/oauth/check_token
 
