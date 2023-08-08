@@ -1,8 +1,11 @@
 ### Redis与分布式
-在SpringBoot阶段 我们学习了Redis 它是一个基于内存的高性能数据库 我们当时已经学习了包括基本操作, 常用数据类型, 持久化, 事务和锁机制以及使用Java与Redis进行交互等
+
+在SpringBoot阶段 我们学习了Redis 它是一个基于内存的高性能数据库 我们当时已经学习了包括基本操作, 常用数据类型, 持久化,
+事务和锁机制以及使用Java与Redis进行交互等
 利用它的高性能 我们还使用它来做Mybatis的二级缓存, 以及Token的持久化存储 而这一部分 我们将继续深入 探讨Redis在分布式开发场景下的应用
 
 ### 主从复制
+
 在分布式场景下 我们可以考虑让Redis实现主要从模式:
 
 <img src="https://fast.itbaima.net/2023/03/07/bzwPflgBD5O1saN.png"/>
@@ -11,10 +14,12 @@
 后者称为从节点(Slave) 数据的复制是单向的只能由主节点到从节点 Master以写为主 Slave以读为主
 
 这样的好处肯定是显而易见的:
-- 实现了读写分离 提高了性能
-- 在写少读多的场景下 我们甚至可以安排很多个从节点 
 
-那么我们现在就来尝试实现一下 这里我们还是在Windows下进行测试 打开Redis文件夹 我们要开启两个Redis服务器 修改配置文件redis.windows.conf:
+- 实现了读写分离 提高了性能
+- 在写少读多的场景下 我们甚至可以安排很多个从节点
+
+那么我们现在就来尝试实现一下 这里我们还是在Windows下进行测试 打开Redis文件夹 我们要开启两个Redis服务器
+修改配置文件redis.windows.conf:
 
 ```editorconfig
                     # Accept connections on the specified port, default is 6379 (IANA #815344).
@@ -30,15 +35,18 @@
 
 <img src="https://fast.itbaima.net/2023/03/07/2TbMQeZknSOzFpy.png"/>
 
-输入info replication命令来查看当前的主从状态 可以看到默认的角色为: master 也就是说所有的服务器在启动之后都是主节点的状态 那么现在我们希望让6002作为从节点 通过一个命令即可:
+输入info replication命令来查看当前的主从状态 可以看到默认的角色为: master 也就是说所有的服务器在启动之后都是主节点的状态
+那么现在我们希望让6002作为从节点 通过一个命令即可:
 
 <img src="https://fast.itbaima.net/2023/03/07/XqpNcihJ5jsZRoI.png"/>
 
-可以看到 在输入replication 127.0.0.1 6001命令后 就会将6001服务器作为主节点 而当前节点作为6001的从节点 并且角色也会变成: slave 接着我们来看看6001的情况:
+可以看到 在输入replication 127.0.0.1 6001命令后 就会将6001服务器作为主节点 而当前节点作为6001的从节点 并且角色也会变成:
+slave 接着我们来看看6001的情况:
 
 <img src="https://fast.itbaima.net/2023/03/07/YABKJDsbQkE1UM5.png"/>
 
-可以看到从节点信息中已经出现了6002服务器 也就是说现在我们的6001和6002就形成了主从关系(还包含了一个偏移量 这个偏移量反应的是从节点的同步情况)
+可以看到从节点信息中已经出现了6002服务器 也就是说现在我们的6001和6002就形成了主从关系(还包含了一个偏移量
+这个偏移量反应的是从节点的同步情况)
 
     主服务器和从服务器都会维护一个复制偏移量 主服务器每次向从服务器中传递N个字节的时候 会将自己的复制偏移量加上N 从服务器中收到主服务器的N个字节的数据
     就会将自己额复制偏移量加上N 通过主要从服务器的偏移量对比可以很清楚的知道主从服务器的数据是否处于一致 如果不一致就需要进行增量同步了
@@ -59,7 +67,8 @@
 
 <img src="https://fast.itbaima.net/2023/03/07/TC7z2mt3EGMPWfq.png"/>
 
-可以看到 在连接之后 也会直接同步主节点的数据 因此无论是已经处于从节点状态还是刚刚启动完成的服务器 都会从主节点同步数据 实际上整同步流程为:
+可以看到 在连接之后 也会直接同步主节点的数据 因此无论是已经处于从节点状态还是刚刚启动完成的服务器 都会从主节点同步数据
+实际上整同步流程为:
 
 1. 从节点执行replicaof ip port命令后 从节点会保存主节点相关的地址信息
 2. 从节点通过每秒运行的定时任务发现配置了新的主节点后 会尝试与该节点建立网络连接 专门用于接收到主节点发送的复制命令
@@ -94,21 +103,26 @@
 采用这种方式 优点肯定是显而易见的 但是缺点也很明显 整个传播链路一旦中途出现问题 那么就会导致后面的从节点无法及时同步
 
 ### 哨兵模式
+
 前面我们讲解了Redis实现主从复制的一些基本操作 那么我们接着来看哨兵模式
 
-经过之前的学习 我们发现 实际上最关键的还是主节点 因为一旦主节点出现问题 那么整个主从系统将无法写入 因此 我们得想一个办法 处理一下主节点故障的情况
-实际上我们可以参考之前的服务治理模式 比如Nacos和Eureka 所有的服务都会被实时监控 那么主要出现问题 肯定是可以及时发现的 并且能够采取响应的补救措施 这就是我们即将介绍的哨兵:
+经过之前的学习 我们发现 实际上最关键的还是主节点 因为一旦主节点出现问题 那么整个主从系统将无法写入 因此 我们得想一个办法
+处理一下主节点故障的情况
+实际上我们可以参考之前的服务治理模式 比如Nacos和Eureka 所有的服务都会被实时监控 那么主要出现问题 肯定是可以及时发现的
+并且能够采取响应的补救措施 这就是我们即将介绍的哨兵:
 
 <img src="https://fast.itbaima.net/2023/03/07/YGq8MDZbRK6E7Po.png"/>
 
-注意这里的哨兵不是我们之前学习SpringCloud Alibaba的那个 是专用于Redis的 哨兵会对所有的节点进行监控 如果发现主节点出现问题 那么会立即让从节点进行投票
-选举一个新的主节点出来 这样就不会由于主节点的故障导致整个系统不可写(注意: 要实现这样的功能最小的系统必须是一主一丛 再小的话就没有意义了)
+注意这里的哨兵不是我们之前学习SpringCloud Alibaba的那个 是专用于Redis的 哨兵会对所有的节点进行监控 如果发现主节点出现问题
+那么会立即让从节点进行投票
+选举一个新的主节点出来 这样就不会由于主节点的故障导致整个系统不可写(注意: 要实现这样的功能最小的系统必须是一主一丛
+再小的话就没有意义了)
 
 <img src="https://fast.itbaima.net/2023/03/07/WhkUqfxcHn4CApP.png"/>
 
 那么怎么启动一个哨兵呢? 我们只需要稍微修改一下配置文件即可 这里直接删除全部内容 添加:
 
-```editorconfig
+```redis
                     sentinel monitor yxsnb 127.0.0.1 6001 1
 ```
 
@@ -125,12 +139,14 @@
 
 <img src="https://fast.itbaima.net/2023/03/07/97HnwfuNjUK5qx4.png"/>
 
-可以看到从节点还是正常的在报错 一开始的时候不会直接重新进行选举而是继续尝试重连(因为有可能只是网络小卡一下 没必要这么敏感)
+可以看到从节点还是正常的在报错 一开始的时候不会直接重新进行选举而是继续尝试重连(因为有可能只是网络小卡一下
+没必要这么敏感)
 但是我们发现 经过一段时间之后 依然无法连接 哨兵输出了以下内容:
 
 <img src="https://fast.itbaima.net/2023/03/07/GWt8Q6mfSv7TgCb.png"/>
 
-可以看到哨兵发现主节点已经有一段时间不可用了 那么就会开始进行重新选举 6003节点被选为了新的主节点 并且之前的主节点6001变成了新的主节点的从节点:
+可以看到哨兵发现主节点已经有一段时间不可用了 那么就会开始进行重新选举 6003节点被选为了新的主节点
+并且之前的主节点6001变成了新的主节点的从节点:
 
 <img src="https://fast.itbaima.net/2023/03/07/4WzTVZ15dMiQ3f8.png"/>
 
@@ -141,13 +157,15 @@
 <img src="https://fast.itbaima.net/2023/03/07/eqLycu8s1rSRtFa.png"/>
 
 那么 这个选举规则是怎样的呢? 是在所有的从节点中随机选取还是遵循某种规则呢?
+
 1. 首先会根据优先级进行选择 可以在配置文件中进行配置 添加replica-priority配置项(默认是100) 越小表示优先级越高
 2. 如果优先级一样 那就选择偏移量最大的
 3. 要是还选不出来 那就选择runid(启动时随机生成的)最小的
 
-要是哨兵也挂了咋办? 没事 咱们可以多安排几个哨兵 只需要把哨兵的配置复制一下 然后修改端口 这样可以同时启动多个哨兵了 我们启动3个哨兵(一主二从三哨兵) 这里我们把最后一个值改为2:
+要是哨兵也挂了咋办? 没事 咱们可以多安排几个哨兵 只需要把哨兵的配置复制一下 然后修改端口 这样可以同时启动多个哨兵了
+我们启动3个哨兵(一主二从三哨兵) 这里我们把最后一个值改为2:
 
-```editorconfig
+```redis
                     sentinel moitor yxsnb 192.168.0.8 6001 2
 ```
 
@@ -172,25 +190,26 @@
                         </dependency>
                     </dependencies>
 ```
+
 ```java
                     public class Main {
-                    
+
                         public static void main(String[] args) {
-                            
+                    
                             // 这里我们直接使用JedisSentinelPool来获取Master节点
                             // 需要把三个哨兵的地址都填入
-                            try (JedisSentinelPool pool = new JedisSentinelPool("yxsnb", 
+                            try (JedisSentinelPool pool = new JedisSentinelPool("yxsnb",
                                     new HashSet<>(Arrays.asList("192.168.0.8:26741", "192.168.0.8:26740", "192.168.0.8:26739")))) {
-                                
+                    
                                 Jedis jedis = pool.getResource(); // 直接询问并得到Jedis对象 这就是连接的Master节点
                                 jedis.set("test", "114514"); // 直接写入即可 实际上就是向Master节点写入
-                                
+                    
                                 Jedis jedis2 = pool.getResource(); // 再次获取
                                 System.out.println(jedis2.get("test")); // 读取操作
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                        
+                    
                         }
                     
                     }
@@ -199,6 +218,7 @@
 这样 Jedis对象就可以通过哨兵来获取 当Master节点更新后 也能得到最新的
 
 ### 集群搭建
+
 如果我们服务器的内存不够用了 但是现在我们的Redis又需要继续存储内容 那么这个时候就可以利用集群来实现扩容
 
 因为单机的内存容量最大就那么多 已经没办法再继续扩展了 但是现在又需要存储更多的内容 这时我们就可以让N台机器上的Redis来分别存储各个部分的数据
@@ -210,11 +230,13 @@
 
 首先 一个Redis集群包含16384个插槽 集群中的每个Redis实例负责维护一部分插槽以及插槽所映射的键值数据 那么这个插槽是什么意思呢?
 
-实际上 插槽就是键的Hash计算后的一个结果 注意这里出现了计算机网络中的CRC循环冗余校验 这里采用CRC16 能得到16个bit位的数据 也就是说算出来之后结果是0-65535之间 再进行取模 得到最终结果
+实际上 插槽就是键的Hash计算后的一个结果 注意这里出现了计算机网络中的CRC循环冗余校验 这里采用CRC16 能得到16个bit位的数据
+也就是说算出来之后结果是0-65535之间 再进行取模 得到最终结果
 
 **Redis key的路由计算公式: slot = CRC16(key) % 16384**
 
-结果的值是多少 就应该存放到对应维护的Redis下 比如Redis节点1负责0-25565的插槽 而这时客户端插入了一个新的数据a=10 a在Hash计算后结果为666
+结果的值是多少 就应该存放到对应维护的Redis下 比如Redis节点1负责0-25565的插槽 而这时客户端插入了一个新的数据a=10
+a在Hash计算后结果为666
 那么a就应该存放到1号Redis节点中 简而言之 本质上就是通过哈希算法将插入的数据分摊到各个节点的 所以说哈希算法真的是处处都有用啊
 
 那么现在我们就来搭建应该简单的Redis集群 这里创建6个配置 注意开启集群模式:
@@ -229,12 +251,14 @@
 
 接着记得把所有的持久化文件全部删除 所有的节点内容必须是空的
 
-然后输入: redis-cli.exe --cluster create --cluster-replicas 1 127.0.0.1:6001 127.0.0.1:6002 127.0.0.1:6003 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003 
+然后输入: redis-cli.exe --cluster create --cluster-replicas 1 127.0.0.1:6001 127.0.0.1:6002 127.0.0.1:6003 127.0.0.1:
+7001 127.0.0.1:7002 127.0.0.1:7003
 这里的--cluster-replicas 1指的是每个节点配一个从节点:
 
 <img src="https://fast.itbaima.net/2023/03/07/7DikHoxKJPve9qa.png"/>
 
-输入之后 会为你展示客户端默认分配的方案 并且会询问你当前的方案是否合理 可以看到6001/6002/6003都被选为主节点 其他的为从节点 我们直接输入yes即可:
+输入之后 会为你展示客户端默认分配的方案 并且会询问你当前的方案是否合理 可以看到6001/6002/6003都被选为主节点 其他的为从节点
+我们直接输入yes即可:
 
 <img src="https://fast.itbaima.net/2023/03/07/yxZhjouXB79qfDd.png"/>
 
@@ -246,7 +270,8 @@
 
 <img src="https://fast.itbaima.net/2023/03/07/YMf8DtlkCsqBpO1.png"/>
 
-在插入时 出现了一个错误 实际上这就是因为a计算出来的哈希值(插槽) 不归当前节点管 我们得去管这个插槽的节点执行 通过上面的分配情况 我们可以得到15495属于节点6003管理:
+在插入时 出现了一个错误 实际上这就是因为a计算出来的哈希值(插槽) 不归当前节点管 我们得去管这个插槽的节点执行 通过上面的分配情况
+我们可以得到15495属于节点6003管理:
 
 <img src="https://fast.itbaima.net/2023/03/07/EZmR2bLFudSskIf.png"/>
 
@@ -286,7 +311,7 @@
 
 ```java
                     public class Main {
-                    
+
                         // 和客户端一样 随便连一个就行 也可以多写几个 构造方法有很多种可以选择
                         public static void main(String[] args) {
                     
@@ -304,24 +329,146 @@
 操作基本和Jedis对象一样 这里就不多做赘述了
 
 ### 分布式锁
+在我们的传统单体应用中 经常会用到锁机制 目的是为了防止多线程竞争导致的并发问题 但是现在我们在分布式环境下 又该如何实现锁机制呢? 
+可能一条链路上又很多的应用 它们都是独立运行的 这时间我们就可以借助Redis来实现分布式锁
 
+还记得我们上一章后最后提出的问题吗?
 
+```java
+                    @Override
+                    public boolean doBorrow(int uid, int bid) {
+                        
+                        // 1. 判断图书和用户是否都支持借阅 如果此时来了10个线程 都进来了 那么都能够判断为可以借阅
+                        if (bookClient.bookRemain(bid) < 1) throw new RuntimeException("图书数量不足");
+                        if (userClient.userRemain(uid) < 1) throw new RuntimeException("用户借阅量不足");
+                        // 2. 首先将图书的数量-1 由于上面10个线程同时进来 同时判断可以借阅 那么这个10个线程就同时将图书数量-1 那库存岂不是直接变成负数了???
+                        if (!bookClient.bookBorrow(bid)) throw new RuntimeException("在借阅图书出现错误");
+                        ...
+                        
+                    }
+```
 
+实际上在高并发下 我们看似正常的借阅流程 会出现问题 比如现在同时来了10个同学要借同一本书 但是现在只有3本 而我们的判断规则是 首先看书够不够 如果此时这10个请求都已经走到这里
+并且都判定为可以进行借阅 那么问题就出现了 接下来这10个请求都开始进行借阅操作 导致库存直接爆表 形成超借问题(在电商系统中也存在同样的超卖问题)
 
+因此 为了解决这种问题 我们就可以利用分布式锁来实现 那么Redis如何去实现分布式锁呢?
 
+在Redis存在这样一个命令:
 
+```redis
+                    setnx key value
+```
 
+这个命令看起来和set命令差不多 但是它有一个机制 就是只有当指定的key不存在的时候 才能进行插入 实际上就是set if not exists的缩写
 
+<img src="https://fast.itbaima.net/2023/03/07/fNCxEJRX61cPsuk.png"/>
 
+可以看到 当客户端1设定a之后 客户端2使用setnx会直接失败
 
+<img src="https://fast.itbaima.net/2023/03/07/wpGutcmxEsWFJVn.png"/>
 
+当客户端1将a删除之后 客户端2就可以使用setnx成功插入了
 
+利用这种特性 我们就可以在不同的服务中实现分布式锁 那么问题来了 要是某个服务加了锁但是卡顿了呢 或是直接崩溃了 那这把锁岂不是永远无法释放了? 因此我们还可以考虑加个过期时间:
 
+```redis
+                    set a 666 EX 5 NX
+```
 
+这里使用set命令 最后加一个NX表示是使用setnx的模式 和上面是一样的 但是可以通过EX设定过期时间 这里设置为5秒 也就是说如果5秒还没释放 那么就自动删除
 
+<img src="https://fast.itbaima.net/2023/03/07/eQEIGKONmkB2u6y.png"/>
 
+当然 添加了过期时间 带来的好处是显而易见的 但是同时也带来了很多的麻烦 我们来设想一下这种情况:
 
+<img src="https://fast.itbaima.net/2023/03/07/nStuP75RLOmQWUM.png"/>
 
+因此 单纯只是添加过期时间 会出现这种把别人加的锁给卸了的情况 要解决这种问题也很简单 我们卸载的目标就是保证任务只能删除自己加的锁 如果是别人加的锁是没有资格删的
+所以我们可以把a的值指定为我们任务专属的值 比如可以使用UUID之类的 如果在主动删除锁的时候发现值不是我们当前任务指定的 那么说明可能是因为超时 其他任务已经加锁了
 
+<img src="https://fast.itbaima.net/2023/03/07/4DW1K38UqQJdwkf.jpg"/>
 
+如果你在学习本篇之前完成了JUC并发编程篇的学习 那么一定会有一个疑惑 如果在超时之前那一刹那进入到释放锁的阶段 获取到值肯定还是自己
+但是在即将执行删除之前 由于超时机制导致被删除并且其他任务也加锁了 那么这时在进行删除 仍然会导致删除其他任务加的锁
 
+<img src="https://fast.itbaima.net/2023/03/07/8I1Atm7BOZC5ifS.jpg"/>
+
+实际上本质还是因为锁的超时时间不太好衡量 如果超时时间能够设定地比较恰当 那么就可以避免这种问题了
+
+要解决这个问题 我们可以借助一下Redisson框架 它是Redis官方推荐的Java版的Redis客户端 它提供的功能非常多 也非常强大 Redisson内部提供了一个监控锁的看门狗
+它的作用是在Redisson实例被关闭前 不断的延长锁的有效期 它为我们提供了很多种分布式锁的实现 使用起来也类似我们在JUC中学习的锁 这里我们尝试使用一下它的分布式锁功能
+
+```xml
+                    <dependency>
+                        <groupId>org.redisson</groupId>
+                        <artifactId>redisson</artifactId>
+                        <version>3.17.0</version>
+                    </dependency>
+                    
+                    <dependency>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-all</artifactId>
+                        <version>4.1.75.Final</version>
+                    </dependency>
+```
+
+首先我们来看看不加锁的情况下:
+
+```java
+                    public static void main(String[] args) {
+                    
+                        for (int i = 0; i < 10; i++) {
+                        
+                            new Thread(() -> {
+                                try (Jedis jedis = new Jedis("192.168.0.10", 6379)) {
+                                    for (int j = 0; j < 100; j++) { // 每个客户端获取a然后增加a的值再写回去 如果不加锁那么肯定会出问题
+                                        int a = Integer.parseInt(jedis.get("a")) + 1;
+                                        jedis.set("a", a + "");
+                                    }
+                                }
+                            }).start();
+                        
+                        }
+                    
+                    }
+```
+
+这里没有直接用incr而是我们自己进行计算 方便模拟 可以看到运行结束之后a的值并不是我们想要的:
+
+<img src="https://fast.itbaima.net/2023/03/07/y2Nvi816ut4jpGC.jpg"/>
+
+现在我们来给它加一把锁 注意这个锁是基于Redis的 不仅仅只可以用于当前应用 是能够跨系统的:
+
+```java
+                    public static void main(String[] args) {
+                    
+                        Config config = new Config();
+                        config.useSingleServer().setAddress("redis://192.168.0.10:6379"); // 配置连接的Redis服务器 也可以指定集群
+                        RedissonClient client = Redisson.create(config); // 创建RedissonClient客户端
+                        
+                        for (int i = 0; i < 10; i++) {
+                        
+                            new Thread(() -> {
+                                 try (Jedis jedis = new Jedis("192.168.0.10", 6379)) {
+                                    RLock lock = client.getLock("testLock"); // 指定锁的名称 拿到锁对象
+                                    for (int j = 0; j < 100; j++) {
+                                        lock.lock(); // 加锁
+                                        int a = Integer.parseInt(jedis.get("a")) + 1;
+                                        jedis.set("a", a + "");
+                                        lock.unlock(); // 解锁
+                                    }
+                                 }
+                                 System.out.println("结束");
+                            }).start();
+                        
+                        }
+                    
+                    }
+```
+
+可以看到结果没有问题:
+
+<img src="https://fast.itbaima.net/2023/03/07/Gyz1Rc7OWhT5NJK.jpg"/>
+
+注意 如果用于存放锁的Redis服务器挂了 那么肯定是会出问题的 这个时候我们就可以使用RedLock 它的思路是 在多个Redis服务器上保存锁
+只需要超过半数的Redis服务器获取到锁 那么就真的获取到锁了 这样就算挂掉一部分节点 也能保证正常运行 这里就不做演示了
