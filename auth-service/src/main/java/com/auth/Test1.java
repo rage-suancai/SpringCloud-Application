@@ -2,7 +2,7 @@ package com.auth;
 
 import java.util.Base64;
 
-public class Test {
+public class Test1 {
 
     public static void main(String[] args) {
 
@@ -20,7 +20,6 @@ public class Test {
         System.out.println("解码后的字符串: " + new String(Base64.getDecoder().decode(encodeStr)));
 
     }
-
     public static void test2() {
 
         String str1 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
@@ -32,5 +31,7 @@ public class Test {
         // System.out.println("解码后的字符串3: " + new String(Base64.getDecoder().decode(str3)));
 
     }
+
+
 
 }
