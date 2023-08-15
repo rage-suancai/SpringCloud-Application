@@ -5,12 +5,14 @@ import redis.clients.jedis.JedisSentinelPool;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.UUID;
 
 public class Test2 {
 
     public static void main(String[] args) {
 
-        test1();
+        //test1();
+        test2();
 
     }
 
@@ -33,7 +35,8 @@ public class Test2 {
 
     static void test2() {
 
-
+        String uuid = UUID.randomUUID().toString();
+        System.out.println(uuid);
 
     }
 
