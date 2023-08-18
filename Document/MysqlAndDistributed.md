@@ -8,7 +8,7 @@
 和之前一样 一旦我们实现了主从复制 那么就算主库出现故障 从库也能正常提供服务 并且还可以实现读写分离等操作
 这里我们就使用两台主机来搭建一主一从的环境 首先确保两台服务器都安装了Mysql数据库并且都已经正常运行了:
 
-<img src="https://fast.itbaima.net/2023/03/07/95wL8vICYNp61T2.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/95wL8vICYNp61T2.jpg"/>
 
 接着我们需要创建对应的账号 一会方便从库进行访问的用户:
 
@@ -49,7 +49,7 @@
 
 然后我们可以输入命令来查看主库的相关情况:
 
-<img src="https://fast.itbaima.net/2023/03/07/kqHZoc8xAbNOd3K.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/kqHZoc8xAbNOd3K.jpg"/>
 
 这样主库就搭建完成了 接着我们需要将从库进行配置 首先是配置文件:
 
@@ -69,7 +69,7 @@
 
 注意后面的logfile和pos就是我们上面从主库中显示的信息
 
-<img src="https://fast.itbaima.net/2023/03/07/H7BIl9s3kPu2Mnw.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/H7BIl9s3kPu2Mnw.jpg"/>
 
 执行完成后 显示OK表示没有问题 接着输入:
 
@@ -85,14 +85,14 @@
 
 来查看当前从机状态 可以看到:
 
-<img src="https://fast.itbaima.net/2023/03/07/KiCoVP1cGaf94uX.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/KiCoVP1cGaf94uX.jpg"/>
 
 最关键的是下面的Replica_IO_Running和Replica_SQL_Running必须同时为Yes才可以 实际上从库会创建两个线程 一个线程负责与主库进行通信
 获取二进制日志 暂时存放到一个中间表(Relay_Log)中 而另一个线程则是将中间表保存的二进制日志的信息进行执行 然后插入到从库中:
 
 最后配置完成 我们来看看在主库进行操作会不会同步到从库:
 
-<img src="https://fast.itbaima.net/2023/03/07/RxNB3QmUYESX5ad.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/RxNB3QmUYESX5ad.jpg"/>
 
 可以看到在主库中创建的数据库 被同步到从库中了 我们再来试试看创建表和插入数据:
 
@@ -105,15 +105,15 @@
                     );
 ```
 
-<img src="https://fast.itbaima.net/2023/03/07/qKBwz31P6ySxlZt.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/qKBwz31P6ySxlZt.jpg"/>
 
 现在我们随便插入一点数据:
 
-<img src="https://fast.itbaima.net/2023/03/07/9pqBFXiLhTPc2xO.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/9pqBFXiLhTPc2xO.jpg"/>
 
 这样 我们的Mysql主从就搭建完成了 那么如果主机此时挂了会怎么样?
 
-<img src="https://fast.itbaima.net/2023/03/07/s1Q5xt32r6dv9UJ.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/s1Q5xt32r6dv9UJ.jpg"/>
 
 可以看到IO线程是处于重连状态 会等待主库重新恢复运行
 
@@ -126,17 +126,17 @@
 
 - **垂直拆分**: 我们的表和数据库都可以进行垂直拆分 所谓垂直拆分 就是将数据库中所有的表 按照业务功能拆分到各个数据库中(是不是感觉跟前面两章的学习的架构对应起来了) 而对于一张表 也可以通过外键之类的机制 将其拆分多个表
 
-    <img src="https://fast.itbaima.net/2023/03/07/mnJO4hBwDAkRcMi.jpg"/>
+    <img src="https://image.itbaima.net/markdown/2023/03/07/mnJO4hBwDAkRcMi.jpg"/>
 
 - **水平拆分**: 水平拆分针对的不是表 而是数据 我们可以让多个具有相同表的数据库存放一部分数据 相当于是将数据分散到存储在各个节点上
 
-    <img src="https://fast.itbaima.net/2023/03/07/AdS5hrH2O1l8iqv.jpg"/>
+    <img src="https://image.itbaima.net/markdown/2023/03/07/AdS5hrH2O1l8iqv.jpg"/>
 
 那么要实现这样的拆分操作 我们自行去编写代码工作量肯定是比较大的 因此目前实际上已经有一些解决方案了 比如我们可以使用MyCat(也是一个数据库中间件 相当于挂了一层代理 再通过MyCat进行分库分表操作数据库
 只需要连接就能使用 类似的还有ShardingSphere-Proxy) 或是Sharding JDBC(应用程序中直接对SQL语句进行分析 然后转换成分库分表操作 需要我们自己编写一些逻辑代码) 再这里我们就讲解一下Sharding JDBC
 
 ### Sharding JDBC
-<img src="https://fast.itbaima.net/2023/03/07/HTlcExgCfZvG9MP.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/HTlcExgCfZvG9MP.jpg"/>
 
 官方文档(中文): https://shardingsphere.apache.org/document/5.1.0/cn/overview/#shardingsphere-jdbc
 
@@ -192,7 +192,7 @@
 
 接着我们来看 如果直接尝试开启服务器 那肯定是开不了的 因为我们要配置数据源:
 
-<img src="https://s2.loli.net/2023/03/07/GEfPLSIZyobhtTe.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/GEfPLSIZyobhtTe.jpg"/>
 
 那么数据源该怎么配置呢? 现在我们是一个分库分表的状态 需要配置两个数据源:
 
@@ -222,7 +222,7 @@
 
 如果启动没有问题 那么就是配置成功了:
 
-<img src="https://s2.loli.net/2023/03/07/Hvm82dfbEtwBqrA.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/Hvm82dfbEtwBqrA.jpg"/>
 
 接着我们需要对项目进行一些编写 添加我们的用户实体类和Mapper:
 
@@ -313,11 +313,11 @@
 
 现在我们可以开始运行了:
 
-<img src="https://s2.loli.net/2023/03/07/7oBrFRwiXQxcumz.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/7oBrFRwiXQxcumz.jpg"/>
 
 测试通过 我们来看看数据库里面是不是按照我们的规则进行数据插入的:
 
-<img src="https://s2.loli.net/2023/03/07/kZINi9wmnte3J7g.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/kZINi9wmnte3J7g.jpg"/>
 
 可以看到这两张表 都成功按照我们指定的路由规则进行插入了 我们来看看详细的路由情况 通过控制台输出的SQL就可以看到:
 
@@ -348,7 +348,7 @@
                     );
 ```
 
-<img src="https://s2.loli.net/2023/03/07/InHsNXA3E8dQBPa.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/InHsNXA3E8dQBPa.jpg"/>
 
 接着我们不要去修改任何的业务代码 Mybatis里面写的是什么依然保持原样 即使我们的表名已经变了 我们需要做的是通过路由来修改原有的SQL 配置如下:
 
@@ -382,11 +382,11 @@
 
 现在我们来测试一下 看看会不会按照我们的策略进行分表插入:
 
-<img src="https://s2.loli.net/2023/03/07/OaRCMTJ1lnIicSd.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/OaRCMTJ1lnIicSd.jpg"/>
 
 可以看到 根据我们的算法 原本的逻辑表被修改为了最终进行分表计算后的结果 我们来查看一下数据库:
 
-<img src="https://s2.loli.net/2023/03/07/lfvgOjanPZHMNdr.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/lfvgOjanPZHMNdr.jpg"/>
 
 插入我们了解完毕了 我们来看看查询呢:
 
@@ -406,7 +406,7 @@
                     }
 ```
 
-<img src="https://s2.loli.net/2023/03/07/7K1WBk3s8HuMeOI.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/7K1WBk3s8HuMeOI.jpg"/>
 
 可以看到 根据我们配置的策略 查询也会自动选择对应的表进行 是不是感觉有内味了
 
@@ -433,7 +433,7 @@
 
 我们来看看执行结果会怎么样:
 
-<img src="https://s2.loli.net/2023/03/07/3Hj7s4xqEwiFXJB.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/3Hj7s4xqEwiFXJB.jpg"/>
 
 可以看到INLINE算法默认是不支持进行全量查询的 我们得将上面的配置项改成true:
 
@@ -443,7 +443,7 @@
 
 再次进行测试:
 
-<img src="https://s2.loli.net/2023/03/07/WoQqNLCXJslBT3D.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/WoQqNLCXJslBT3D.jpg"/>
 
 可以看到 最终出来的SQL语句是直接对两个表都进行查询 然后求出一个并集出来作为最后的结果 当然除了分片之外 还有广播表和绑定表机制 用于多种业务场景下 这里就不多做介绍了 详细请查阅官方文档
 
@@ -475,7 +475,7 @@
 
 2. `雪花算法(Snowflake)`: 我们来看雪花算法 它会生成一个64bit大小的整型的ID int肯定是装不下了
 
-    <img src="https://s2.loli.net/2023/03/07/lU9A4zjSIKvaxwh.jpg"/>
+    <img src="https://image.itbaima.net/markdown/2023/03/07/lU9A4zjSIKvaxwh.jpg"/>
 
    可以看到它主要是三个部分组成 时间+工作机器ID+序列号 时间以毫秒为单位 41个bit位能表示约70年的时间 时间纪元从2016年11月1日零点开始 可以使用到2086年 工作机器ID其实就是节点ID
    每个节点的ID都不相同 那么就可以区分出来 10个bit位可以表示最多1024个节点 最后12位就是每个节点下的序列号 因此每台机器每毫秒就可以有4096个系列号
@@ -554,14 +554,14 @@ ShardingJDBC支持以上两种算法为我们自动生成ID 文档: https://shar
 
 可以看到日志:
 
-<img src="https://s2.loli.net/2023/03/07/2JBaqnV8k9OWYfw.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/2JBaqnV8k9OWYfw.jpg"/>
 
 在插入的时候 将我们的SQL语句自行添加了一个id字段 并且使用的是雪花算法生成的值 并且也是根据我们的分库策略在进行插入操作
 
 ### 读写分离
 最后我们来看看读写分离 我们之前实现了Mysql的主从 那么我们就可以将主库作为读 从库作为写:
 
-<img src="https://s2.loli.net/2023/03/07/KRBbGXxhkmUHFIr.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/KRBbGXxhkmUHFIr.jpg"/>
 
 这里我们还是将数据库变回主从状态 直接删除当前的表 我们重新来过:
 
@@ -583,7 +583,7 @@ ShardingJDBC支持以上两种算法为我们自动生成ID 文档: https://shar
 
 然后进入主库 看看状态:
 
-<img src="https://s2.loli.net/2023/03/07/8o4YIB5MysaUuFx.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/8o4YIB5MysaUuFx.jpg"/>
 
 现在我们配置一下从库:
 
@@ -651,7 +651,7 @@ ShardingJDBC支持以上两种算法为我们自动生成ID 文档: https://shar
 
 运行看看SQL日志:
 
-<img src="https://s2.loli.net/2023/03/07/zJvqKmfyhVMFLtZ.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/zJvqKmfyhVMFLtZ.jpg"/>
 
 可以看到 当我们执行插入操作时 会直接向db0进行操作 而读取操作是会根据我们的配置 选择db1进行操作
 

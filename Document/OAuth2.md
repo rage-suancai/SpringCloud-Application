@@ -13,7 +13,7 @@
 
 但是我们想一下 我们现在采用的是分布式的系统 那么在用户服务进行登录之后 其他服务比如图书服务和借阅服务 它们会知道用户登录了吗?
 
-<img src="https://fast.itbaima.net/2023/03/06/hV2JkERda4qKtjB.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/hV2JkERda4qKtjB.png"/>
 
 实际上我们登录到用户服务之后 Session中的用户数据只会在用户服务的应用中保存 而在其他服务中 并没有对应的信息 但是我们现在希望的是
 所有的服务都能够同步这些Session信息 这样我们才能实现现在用户服务登录之后其他服务都能知道 那么我们该如何实现Session的同步呢?
@@ -23,13 +23,13 @@
 2. 将Session移出服务器 用统一存储来存放 比如我们可以直接在Redis或是MySQL中存放用户的Session信息 这样所有的服务器在需要获取Session信息时 
    统一访问Redis或是MySQL即可 这样就能保证所有服务都可以同步Session了(是不是越来越感觉只要有问题 没有什么是加一个中间件解决不了的)
     
-   <img src="https://fast.itbaima.net/2023/03/06/pqZolFN6eIPza52.png"/>
+   <img src="https://image.itbaima.net/markdown/2023/03/06/pqZolFN6eIPza52.png"/>
 
 那么 我们就着重来研究一下 然后实现2号方案 这里我们就使用Redis作为Session统一存储 我们把一开始的压缩包重新解压一次 又来从头开始编写吧
 
 这里我们就只使用Nacos就行了 和之前一样 我们把Nacos的包导入一下 然后进行一些配置:
 
-<img src="https://fast.itbaima.net/2023/03/06/FYcNvAuZ7z8rj2V.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/FYcNvAuZ7z8rj2V.png"/>
 
 现在我们需要每个服务都添加验证机制 首先导入依赖:
 
@@ -71,29 +71,29 @@
 
 我们来打开Nacos看看:
 
-<img src="https://fast.itbaima.net/2023/03/06/SyCJXKgO3qGx8EL.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/SyCJXKgO3qGx8EL.png"/>
 
 可以看到三个服务都正常注册了 接着我们去访问图书服务:
 
-<img src="https://fast.itbaima.net/2023/03/06/gytqnZjTMvVEUm3.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/gytqnZjTMvVEUm3.png"/>
 
 可以看到 访问失败直接把我们给重定向到登录页面了 也就是说必须登录之后能访问 同样的方式去访问其他服务 也是一样的效果
 
 由于现在是统一Session存储 那么我们就可以在任意一个服务登录之后 其他服务都可以正常访问 现在我们在当前页面登录 登录之后可以看到图书服务能够正常访问了:
 
-<img src="https://fast.itbaima.net/2023/03/06/xfV5oYGvc1jKqTM.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/xfV5oYGvc1jKqTM.png"/>
 
 同时用户访问也能正常访问了:
 
-<img src="https://fast.itbaima.net/2023/03/06/OH6wjLVreot4IiA.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/OH6wjLVreot4IiA.png"/>
 
 我们可以查看一下Redis服务器中是不是存储了我们的Session信息:
 
-<img src="https://fast.itbaima.net/2023/03/06/nNIkoXOAYuMH8aV.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/nNIkoXOAYuMH8aV.png"/>
 
 虽然看起来好像确实没啥问题了 但是借阅服务炸了 我们来看看为什么:
 
-<img src="https://fast.itbaima.net/2023/03/06/wls5vCajnuMBOkU.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/wls5vCajnuMBOkU.png"/>
 
 在RestTemplate进行远程调用的时候 由于我们的请求没有携带对应SESSION的Cookie 所以导致验证失败
 服务不成功 返回401 所以虽然这种方案看起来比较合理 但是在我们的实际使用中 还是存在一些不便的
@@ -104,7 +104,7 @@
 前面我们虽然使用了统一存储来解决Session共享问题 但是我们发现就算实现了Session共享 依然存在一些问题 由于我们每个服务都有自己的验证模块
 实际上整系统是存在冗余功能的 同时还有我们上面出现的问题 那么能否实现只在一个服务进行登录 就可以访问其他服务呢?
 
-<img src="https://fast.itbaima.net/2023/03/06/46ukOAiDzMZBX15.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/46ukOAiDzMZBX15.png"/>
 
 实际上之前的登录模式称为多点登录 而我们希望的是实现单点登录 因此 我们得找一个更好的解决方案
 
@@ -121,7 +121,7 @@
    
    当然 这里的前端页面只是一个例子 它还可以是其他任何类型的客户端 比如App, 小程序甚至是第三方应用的服务
 
-   <img src="https://fast.itbaima.net/2023/03/06/4i16wzqOnYeaB2c.png"/>
+   <img src="https://image.itbaima.net/markdown/2023/03/06/4i16wzqOnYeaB2c.png"/>
 
    虽然这种模式比较简便 但是已经失去了用户验证的意义 压根就不是给用户校验准备的 而是更适用于服务内部调用的场景
 
@@ -129,7 +129,7 @@
 2. **密码模式(Resource Owner Password Credentials)**
    密码模式相比客户端模式 就多了用户名和密码的信息 用户需要提供对应账号的用户名和密码 才能获取到Token
 
-   <img src="https://fast.itbaima.net/2023/03/06/JEreS9nQD8ojMca.png"/>
+   <img src="https://image.itbaima.net/markdown/2023/03/06/JEreS9nQD8ojMca.png"/>
 
    虽然这样看起来比较合理 但是会直接将账号和密码泄露给客户端 需要后台完全信任客户端不会拿账号密码去干其他坏事 所以这也不是我们常见的
 
@@ -137,7 +137,7 @@
 3. **隐式授权模式(Implicit Grant)**
    首先用户访问页面时 会重定向到认证服务器 接着认证服务器给用户一个认证页面 等待用户授权 用户填写信息完成授权后 认证服务器返回Token
 
-   <img src="https://fast.itbaima.net/2023/03/06/MRxnKyWT3br5Zj2.png"/>
+   <img src="https://image.itbaima.net/markdown/2023/03/06/MRxnKyWT3br5Zj2.png"/>
 
    它适用于没有服务端的第三方应用页面 并且相比前面一种形式 验证都是在验证服务器进行的 敏感信息不会轻易泄露 但是Token依然存在泄露的风险
 
@@ -148,7 +148,7 @@
    (客户端通过访问自己的应用服务器来进而访问其他服务)和验证服务器之间会共享一个secret 这个东西没有其它人知道 而验证服务器在用户验证完成之后 
    会返回一个授权码 应用服务器最后将授权码和secret一起交给验证服务器进行验证 并且Token也是在服务端之间传递 不会直接给到客户端
 
-   <img src="https://fast.itbaima.net/2023/03/06/2EIPfirBOKbcndk.png"/>
+   <img src="https://image.itbaima.net/markdown/2023/03/06/2EIPfirBOKbcndk.png"/>
 
    这样就算有人中途窃取了授权码 也毫无意义 因为 Token的获取必须同时携带授权码和secret 但是secret第三方是无法得知的 并且Token不会直接丢给客户端 大大减少了泄露的风险
 
@@ -298,42 +298,42 @@
 
 接着我们就可以启动服务器了:
 
-<img src="https://fast.itbaima.net/2023/03/06/2FhnOKe1BorP5NE.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/2FhnOKe1BorP5NE.png"/>
 
 然后我们使用Postman进行接口测试 首先我们从最简单的客户端进模式行测试 客户端模式只需要提供id和secret即可直接拿到Token
 注意: 需要再添加一个grant_type来表明我们的授权方式 默认请求路径为: http://localhost:8500/sso/oauth/token:
 
-<img src="https://fast.itbaima.net/2023/03/06/X81T7mz5gQK3iBk.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/X81T7mz5gQK3iBk.png"/>
 
 发起请求后 可以看到我们得到了Token 它是以JSON格式给到我们的:
 
-<img src="https://fast.itbaima.net/2023/03/06/84IKgq2xdvBeLTm.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/84IKgq2xdvBeLTm.png"/>
 
 我们还可以访问 http://localhost:8500/sso/oauth/check_token 来验证我们的Token是否有效:
 
-<img src="https://fast.itbaima.net/2023/03/06/SXD8FjzZn7ev2B3.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/SXD8FjzZn7ev2B3.png"/>
 
-<img src="https://fast.itbaima.net/2023/03/06/B9TzojnUq4KvVPr.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/B9TzojnUq4KvVPr.png"/>
 
 可以看到active为true 表示我们刚刚申请到的Token是有效的
 
 接着我们来测试一下第二种password模式 我们还需要提供具体的用户名和密码 授权模式定义为password即可:
 
-<img src="https://fast.itbaima.net/2023/03/06/jt5XPZKvRFqr73x.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/jt5XPZKvRFqr73x.png"/>
 
 接着我们需要在请求头中添加Basic验证信息 这里我们直接填写id和secret即可:
 
-<img src="https://fast.itbaima.net/2023/03/06/K9ZpIv8SzcfsHd4.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/K9ZpIv8SzcfsHd4.png"/>
 
 可以看到在请求头中自动生成了Basic验证相关内容:
 
-<img src="https://fast.itbaima.net/2023/03/06/JHxPKgFU5wY7SB8.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/JHxPKgFU5wY7SB8.png"/>
 
-<img src="https://fast.itbaima.net/2023/03/06/F3WU7XhqridywVn.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/F3WU7XhqridywVn.png"/>
 
 响应成功 得到Token信息 并且这里还多出了一个refresh_token 这是用于刷新Token的 我们之后会进行讲解
 
-<img src="https://fast.itbaima.net/2023/03/06/zjuc2qxQmBas5r1.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/zjuc2qxQmBas5r1.png"/>
 
 查询Token信息之后还可以看到登录的具体用户以及角色权限等
 
@@ -343,11 +343,11 @@
 注意response_type一定要是token类型 这样才会直接返回Token 浏览器发起请求后 可以看到熟悉而又陌生的界面 没错
 实际上这里就是使用我们之前讲解的SpringSecurity进行登录 当然也可以配置一下记住我之类的功能 这里就不演示了:
 
-<img src="https://fast.itbaima.net/2023/03/06/OYeRQpEXFSoZMhc.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/OYeRQpEXFSoZMhc.png"/>
 
 但是登录之后我们发现出现了一个错误:
 
-<img src="https://fast.itbaima.net/2023/03/06/qLUkJFZau8eQ6WO.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/qLUkJFZau8eQ6WO.png"/>
 
 这是因为登录成功之后 验证服务器需要将结果给回客户端 所以需要提供客户端的回调地址 这样 浏览器就会被重定向到指定的回调地址并且请求中会携带Token信息 这里我们随便配置一个回调地址:
 
@@ -369,16 +369,16 @@
 
 接着重启验证服务器 再次访问:
 
-<img src="https://fast.itbaima.net/2023/03/06/PnTwQhlYXDgBvry.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/PnTwQhlYXDgBvry.png"/>
 
 可以看到这里会让我们选择哪些范围进行授权 就像我们在微信小程序中登录一样 会让我们授予用户信息权限, 支付权限, 信用查询权限等
 我们可以自由决定要不要给客户端授予访问这些资源的权限 这里我们全部选择授予:
 
-<img src="https://fast.itbaima.net/2023/03/06/p7nMEVZIKjXWAl5.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/p7nMEVZIKjXWAl5.png"/>
 
 授予之后 可以看到浏览器被重定向到我们刚刚指定的回调地址中 并且携带了Token信息 现在我们来校验一下看看:
 
-<img src="https://fast.itbaima.net/2023/03/06/g1JhS9WDfcz6QEK.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/g1JhS9WDfcz6QEK.png"/>
 
 可以看到 Token也是有效的
 
@@ -386,28 +386,28 @@
 
 可以看到访问之后 依然会进入到回调地址 但是这时给的就是授权码了 而不是直接给Token 那么这个Token该怎么获取呢?
 
-<img src="https://fast.itbaima.net/2023/03/06/da4WseDt172hbLV.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/da4WseDt172hbLV.png"/>
 
 按照我们之前讲解的原理 我们需要携带授权码和secret一起请求 才能拿到Token 正常情况下是有由回调的服务器进行处理
 这里我们就在Postman中进行 我们复制刚刚得到的授权码 接口依然是localhost:8500/sso/oauth/token:
 
-<img src="https://fast.itbaima.net/2023/03/06/e1Zdt9IP7vp2zMO.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/e1Zdt9IP7vp2zMO.png"/>
 
 可以看到结果也是正常返回了Token信息:
 
-<img src="https://fast.itbaima.net/2023/03/06/qY5kxgBWSzMJXco.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/qY5kxgBWSzMJXco.png"/>
 
 这样我们四种最基本的Token请求方式就实现了
 
 最后还有一个是刷新令牌使用的 当我们的Token过期时 我们就可以使用这个refresh_token来申请一个新的Token:
 
-<img src="https://fast.itbaima.net/2023/03/06/d2ojclCLB3mQu7D.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/d2ojclCLB3mQu7D.png"/>
 
 但是执行之后我们发现会直接出现一个内部错误:
 
-<img src="https://fast.itbaima.net/2023/03/06/BcFMIg4NqCx8kdh.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/BcFMIg4NqCx8kdh.png"/>
 
-<img src="https://fast.itbaima.net/2023/03/06/cA9WF1KxyUDZ8Bi.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/cA9WF1KxyUDZ8Bi.png"/>
 
 查看日志发现 这里还需要我们单独配置一个UserDetailsService 我们直接把Security中的实例注册为Bean:
 
@@ -437,7 +437,7 @@
 
 最后再次尝试刷新Token:
 
-<img src="https://fast.itbaima.net/2023/03/06/QWEwzpiq7FXnv3f.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/QWEwzpiq7FXnv3f.png"/>
 
 OK 成功刷新Token 返回了一个新的
 
@@ -523,11 +523,11 @@ OK 成功刷新Token 返回了一个新的
 
 现在我们就开启图书服务 调用图书接口:
 
-<img src="https://fast.itbaima.net/2023/03/06/DrVSZtdKNCoMucx.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/DrVSZtdKNCoMucx.png"/>
 
 可以看到在发现没有登录验证时 会直接跳转到授权页面 进行授权登录 之后才可以继续访问图书服务:
 
-<img src="https://fast.itbaima.net/2023/03/06/nsJGmxcOVYXDUqd.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/nsJGmxcOVYXDUqd.png"/>
 
 那么用户信息呢? 是否也一并保存过来了? 我们这里直接获取一下SpringSecurity的Context查看用户信息 获取方式跟我们之前讲解的是一样的:
 
@@ -543,7 +543,7 @@ OK 成功刷新Token 返回了一个新的
                }
 ```
 
-<img src="https://fast.itbaima.net/2023/03/06/y1VYRC9tmOv854u.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/y1VYRC9tmOv854u.png"/>
 
 这里使用的不是之前的UsernamePasswordAuthenticationToken也不是RememberMeAuthenticationToken
 而是新的OAuth2Authentication 它保存了验证服务器的一些信息 以及经过我们之前的登录流程之后 验证服务器发放给客户端的Token信息
@@ -571,7 +571,7 @@ OK 成功刷新Token 返回了一个新的
 
 但是我们发现了一个问题 就是由于SESSION不同步 每次切换不同的服务进行访问都会重新导致验证访服务去验证一次:
 
-<img src="https://fast.itbaima.net/2023/03/06/7zbqlOrSCVRdQ4y.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/7zbqlOrSCVRdQ4y.png"/>
 
 这里有两个方案:
 - 像之前一样做SESSION统一存储
@@ -617,7 +617,7 @@ OK 成功刷新Token 返回了一个新的
 
 配置完成后 我们启动服务器 直接访问会发现:
 
-<img src="https://fast.itbaima.net/2023/03/06/QiZmqznyMxNpETk.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/QiZmqznyMxNpETk.png"/>
 
 这是由于我们的请求头中没有携带Token信息 现在有两种方式可以访问此资源:
 - 在URL后面添加access_token请求参数 值为Token值
@@ -625,17 +625,17 @@ OK 成功刷新Token 返回了一个新的
 
 我们先来试试看最简单的一种:
 
-<img src="https://fast.itbaima.net/2023/03/06/Np6PKCZD2kAdmtf.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/Np6PKCZD2kAdmtf.png"/>
 
 另一种我们需要使用Postman来完成:
 
-<img src="https://fast.itbaima.net/2023/03/06/ypR3G7DxsYicMQI.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/ypR3G7DxsYicMQI.png"/>
 
 添加验证信息后 会帮助我们转换成请求头信息:
 
-<img src="https://fast.itbaima.net/2023/03/06/qPHDU1dXgC7srn3.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/qPHDU1dXgC7srn3.png"/>
 
-<img src="https://fast.itbaima.net/2023/03/06/6IeMvTcCKdfbUlV.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/6IeMvTcCKdfbUlV.png"/>
 
 这样我们就将资源服务器搭建完成了
 
@@ -660,7 +660,7 @@ OK 成功刷新Token 返回了一个新的
 
 可以看到当没有对应的scope授权时 那么会直接返回insufficient_scope错误:
 
-<img src="https://fast.itbaima.net/2023/03/06/5T4d39YkcZIomvD.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/5T4d39YkcZIomvD.png"/>
 
 不知道各位是否有发现 实际上资源服务器完全没有必要将Security的信息保存在Session中了 因为现在只需要将Token告诉资源服务器 那么 资源服务器就可以联系验证服务器
 得到用户信息 就不需要使用之前的Session存储机制了 所以你会发现HttpSession中没有SPRING_SECURITY_CONTEXT 现在Security信息都是通过连接资源服务器获取
@@ -669,7 +669,7 @@ OK 成功刷新Token 返回了一个新的
 
 但是还有一个问题没有解决 我们在使用RestTemplate进行服务间的远程调用时 会得到以下错误:
 
-<img src="https://fast.itbaima.net/2023/03/06/k3LmR9E7UBtVA5x.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/k3LmR9E7UBtVA5x.png"/>
 
 实际上这是因为在服务调用时没有携带Token信息 我们得想个办法把用户传来的Token信息在进行远程调用时也携带上 因此
 我们可以直接使用OAuth2RestTemplate 它会在请求其它服务时携带当前请求的Token信息 它继承自RestTemplate 这里我们直接定义一个Bean:
@@ -720,7 +720,7 @@ OK 成功刷新Token 返回了一个新的
 
 可以看到服务成功调用了:
 
-<img src="https://fast.itbaima.net/2023/03/06/mvKqyJk7P1FCQSl.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/mvKqyJk7P1FCQSl.png"/>
 
 现在我们来将Nacos加入 并通过Feign实现远程调用
 
@@ -748,7 +748,7 @@ OK 成功刷新Token 返回了一个新的
 
 所有服务都已经注册成功了:
 
-<img src="https://fast.itbaima.net/2023/03/06/BqkomFVGK7wv64X.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/BqkomFVGK7wv64X.png"/>
 
 接着我们配置一下借阅服务的负载均衡:
 
@@ -768,7 +768,7 @@ OK 成功刷新Token 返回了一个新的
                }
 ```
 
-<img src="https://fast.itbaima.net/2023/03/06/PZkS8GyU1jhpIrz.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/PZkS8GyU1jhpIrz.png"/>
 
 现在我们来把它替换为Feign 老样子 两个客户端:
 
@@ -793,7 +793,7 @@ OK 成功刷新Token 返回了一个新的
 
 但是配置完成之后 又出现刚刚的问题了 OpenFeign也没有携带Token进行访问:
 
-<img src="https://fast.itbaima.net/2023/03/06/EzWuaAJgNLi3sdF.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/EzWuaAJgNLi3sdF.png"/>
 
 那么怎么配置Feign携带Token访问呢? 遇到这种问题直接去官方查: https://docs.spring.io/spring-cloud-openfeign/docs/current/reference/html/#oauth2-support 非常简单 两个配置就搞定:
 
@@ -808,7 +808,7 @@ OK 成功刷新Token 返回了一个新的
 
 重启服务器 可以看到结果OK了:
 
-<img src="https://fast.itbaima.net/2023/03/06/zgEJF7AeHw8iGIZ.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/06/zgEJF7AeHw8iGIZ.png"/>
 
 这样我们就成功将之前的三个服务作为资源服务器了 注意和我们上面的作为客户端是不同的 将服务直接作为客户端相当于只需要验证通过即可
 并且还是要保存Session信息 相当于只是将登录流程换到统一的验证服务器上进行罢了 而将其作为资源服务器 那么就需要另外找客户端
@@ -826,7 +826,7 @@ JSON Web Token令牌(JWT)是一个开放标准(RFC 7519) 它定义了一种紧�
 
 JWT令牌的格式如下:
 
-<img src="https://fast.itbaima.net/2023/03/07/Xu8lxYhKoJNr6it.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/Xu8lxYhKoJNr6it.png"/>
 
 一个JWT令牌由3部分组成: 标头(Header), 有效载荷(Payload)和签名(Signature) 在传输的时候 会将JWT的三部分分别进行Base64编码后用.进行连接形成最终需要传输的字符串
 - **标头**: 包含一些元数据信息 比如JWT签名所使用的加密算法 还有类型 这里统一都是JWT
@@ -867,7 +867,7 @@ JWT令牌的格式如下:
 
 这里我们就可以利用JWT 将我们的Token采用新的方式进行存储:
 
-<img src="https://fast.itbaima.net/2023/03/07/W95CFKAmd1wfgSJ.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/W95CFKAmd1wfgSJ.png"/>
 
 这里我们使用最简单的一种方式 对称加密 我们需要对验证服务器进行一些修改:
 
@@ -915,11 +915,11 @@ JWT令牌的格式如下:
 
 然后我们就可以重启验证服务器了:
 
-<img src="https://fast.itbaima.net/2023/03/07/C6OteoFghrxpYjQ.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/C6OteoFghrxpYjQ.png"/>
 
 可以看到成功获取了AccessToken 但是这里的格式跟我们之前的格式就大不相同了 因为现在它是JWT令牌 我们可以对其进行一下Base64解码:
 
-<img src="https://fast.itbaima.net/2023/03/07/CUMkrRfgOthZKVz.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/CUMkrRfgOthZKVz.png"/>
 
 可以看到所有的验证信息包含在内 现在我们对资源服务器进行配置:
 
@@ -933,12 +933,12 @@ JWT令牌的格式如下:
 
 然后启动资源服务器 请求一下接口试试看:
 
-<img src="https://fast.itbaima.net/2023/03/07/kOpRlTB7SPtQa4y.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/kOpRlTB7SPtQa4y.png"/>
 
 请求成功 得到数据:
 
-<img src="https://fast.itbaima.net/2023/03/07/aicW89KezTSZ7f5.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/aicW89KezTSZ7f5.png"/>
 
 注意如果Token有误 那么会得到:
 
-<img src="https://fast.itbaima.net/2023/03/07/4wFZx8kNY5WHnvy.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/4wFZx8kNY5WHnvy.png"/>

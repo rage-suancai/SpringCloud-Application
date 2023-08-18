@@ -8,7 +8,7 @@
 
 在分布式场景下 我们可以考虑让Redis实现主要从模式:
 
-<img src="https://fast.itbaima.net/2023/03/07/bzwPflgBD5O1saN.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/bzwPflgBD5O1saN.png"/>
 
 主从复制 是指将一台Redis服务器的数据 复制到其他的Redis服务器 前者称为主节点(Master)
 后者称为从节点(Slave) 数据的复制是单向的只能由主节点到从节点 Master以写为主 Slave以读为主
@@ -29,21 +29,21 @@
 
 一个服务器的端口设定为6001 复制一份 另一个的端口为6002 接着我们指定配置文件进行启动 打开cmd:
 
-<img src="https://fast.itbaima.net/2023/03/07/Si54lok9eqtKPf1.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/Si54lok9eqtKPf1.png"/>
 
 现在我们的两个服务器就启动成功了 接着我们可以使用命令查看当前服务器的主从状态 我们打开客户端:
 
-<img src="https://fast.itbaima.net/2023/03/07/2TbMQeZknSOzFpy.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/2TbMQeZknSOzFpy.png"/>
 
 输入info replication命令来查看当前的主从状态 可以看到默认的角色为: master 也就是说所有的服务器在启动之后都是主节点的状态
 那么现在我们希望让6002作为从节点 通过一个命令即可:
 
-<img src="https://fast.itbaima.net/2023/03/07/XqpNcihJ5jsZRoI.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/XqpNcihJ5jsZRoI.png"/>
 
 可以看到 在输入replication 127.0.0.1 6001命令后 就会将6001服务器作为主节点 而当前节点作为6001的从节点 并且角色也会变成:
 slave 接着我们来看看6001的情况:
 
-<img src="https://fast.itbaima.net/2023/03/07/YABKJDsbQkE1UM5.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/YABKJDsbQkE1UM5.png"/>
 
 可以看到从节点信息中已经出现了6002服务器 也就是说现在我们的6001和6002就形成了主从关系(还包含了一个偏移量
 这个偏移量反应的是从节点的同步情况)
@@ -53,19 +53,19 @@ slave 接着我们来看看6001的情况:
 
 那么我们现在可以来测试一下 在主要节点新增数据 看看是否会同步到从节点:
 
-<img src="https://fast.itbaima.net/2023/03/07/taxoisA8Tpg2DWM.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/taxoisA8Tpg2DWM.png"/>
 
 可以看到 我们在6001服务器插入的a 可以在从节点6002读取到 那么从节点新增的数据在主节点能得到吗? 我们来测试一下:
 
-<img src="https://fast.itbaima.net/2023/03/07/dS2V8xafPj6lKND.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/dS2V8xafPj6lKND.png"/>
 
 可以看到 从节点压根就没办法进行数据插入 节点的模式为只读模式 那么如果我们现在不想让6002作为6001的从节点了呢?
 
-<img src="https://fast.itbaima.net/2023/03/07/dV7Rxov6pblW2g5.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/dV7Rxov6pblW2g5.png"/>
 
 可以看到 通过输入replicaof on one 即可变回Master角色 接着我们再来启动一台6003服务器 流程是一样的:
 
-<img src="https://fast.itbaima.net/2023/03/07/TC7z2mt3EGMPWfq.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/TC7z2mt3EGMPWfq.png"/>
 
 可以看到 在连接之后 也会直接同步主节点的数据 因此无论是已经处于从节点状态还是刚刚启动完成的服务器 都会从主节点同步数据
 实际上整同步流程为:
@@ -76,11 +76,11 @@ slave 接着我们来看看6001的情况:
 
 当我们的主节点关闭后 从节点依然可以读取数据:
 
-<img src="https://fast.itbaima.net/2023/03/07/MmNshyQxa2ijSRT.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/MmNshyQxa2ijSRT.png"/>
 
 但是从节点会疯狂报错:
 
-<img src="https://fast.itbaima.net/2023/03/07/pEIo93MQXShrsZD.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/pEIo93MQXShrsZD.png"/>
 
 当然每次都去敲个命令配置主从太麻烦了 我们可以直接在配置文件中配置 添加这样行即可:
 
@@ -90,15 +90,15 @@ slave 接着我们来看看6001的情况:
 
 这里我们给6002和6003服务器都配置一下 现在我们重启三个服务器
 
-<img src="https://fast.itbaima.net/2023/03/07/GpAa5kfyC3zVRZK.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/GpAa5kfyC3zVRZK.png"/>
 
 当然 除了作为Master节点的从节点外 我们还可以将其作为从节点的从节点 比如现在我们让6003作为6002的从节点:
 
-<img src="https://fast.itbaima.net/2023/03/07/OdAs1weYgkDrQvf.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/OdAs1weYgkDrQvf.png"/>
 
 也就是说 现在差不多是这样的一个情况:
 
-<img src="https://fast.itbaima.net/2023/03/07/2ADSR8LtpMhCFfK.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/2ADSR8LtpMhCFfK.png"/>
 
 采用这种方式 优点肯定是显而易见的 但是缺点也很明显 整个传播链路一旦中途出现问题 那么就会导致后面的从节点无法及时同步
 
@@ -111,14 +111,14 @@ slave 接着我们来看看6001的情况:
 实际上我们可以参考之前的服务治理模式 比如Nacos和Eureka 所有的服务都会被实时监控 那么主要出现问题 肯定是可以及时发现的
 并且能够采取响应的补救措施 这就是我们即将介绍的哨兵:
 
-<img src="https://fast.itbaima.net/2023/03/07/YGq8MDZbRK6E7Po.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/YGq8MDZbRK6E7Po.png"/>
 
 注意这里的哨兵不是我们之前学习SpringCloud Alibaba的那个 是专用于Redis的 哨兵会对所有的节点进行监控 如果发现主节点出现问题
 那么会立即让从节点进行投票
 选举一个新的主节点出来 这样就不会由于主节点的故障导致整个系统不可写(注意: 要实现这样的功能最小的系统必须是一主一丛
 再小的话就没有意义了)
 
-<img src="https://fast.itbaima.net/2023/03/07/WhkUqfxcHn4CApP.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/WhkUqfxcHn4CApP.png"/>
 
 那么怎么启动一个哨兵呢? 我们只需要稍微修改一下配置文件即可 这里直接删除全部内容 添加:
 
@@ -129,32 +129,32 @@ slave 接着我们来看看6001的情况:
 其中第一个和第二个是固定 第三个是为监控对象名称 随意 后面就是主节点的相关信息 包括IP地址和端口
 最后一个1我们暂时先不说 然后我们使用此配置文件启动服务器 可以看到启动后:
 
-<img src="https://fast.itbaima.net/2023/03/07/xB78t53RgykXvo9.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/xB78t53RgykXvo9.png"/>
 
-<img src="https://fast.itbaima.net/2023/03/07/STh2RgjW7ycPCNB.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/STh2RgjW7ycPCNB.png"/>
 
 可以看到以哨兵模式启动后 会自动监控主节点 然后还会显示那些节点是作为从节点存在的
 
 现在我们直接把主要节点关闭 看看会发生什么事情:
 
-<img src="https://fast.itbaima.net/2023/03/07/97HnwfuNjUK5qx4.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/97HnwfuNjUK5qx4.png"/>
 
 可以看到从节点还是正常的在报错 一开始的时候不会直接重新进行选举而是继续尝试重连(因为有可能只是网络小卡一下
 没必要这么敏感)
 但是我们发现 经过一段时间之后 依然无法连接 哨兵输出了以下内容:
 
-<img src="https://fast.itbaima.net/2023/03/07/GWt8Q6mfSv7TgCb.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/GWt8Q6mfSv7TgCb.png"/>
 
 可以看到哨兵发现主节点已经有一段时间不可用了 那么就会开始进行重新选举 6003节点被选为了新的主节点
 并且之前的主节点6001变成了新的主节点的从节点:
 
-<img src="https://fast.itbaima.net/2023/03/07/4WzTVZ15dMiQ3f8.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/4WzTVZ15dMiQ3f8.png"/>
 
-<img src="https://fast.itbaima.net/2023/03/07/gGHVvOhBKe9wSEz.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/gGHVvOhBKe9wSEz.png"/>
 
 当我们再次启动6001时 会发现 它自动变成了6003的从节点 并且会将数据同步过来:
 
-<img src="https://fast.itbaima.net/2023/03/07/eqLycu8s1rSRtFa.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/eqLycu8s1rSRtFa.png"/>
 
 那么 这个选举规则是怎样的呢? 是在所有的从节点中随机选取还是遵循某种规则呢?
 
@@ -171,11 +171,11 @@ slave 接着我们来看看6001的情况:
 
 这个值实际上代表的是当有几个哨兵认为主节点关掉时 就判断主节点真的挂掉了
 
-<img src="https://fast.itbaima.net/2023/03/07/48MNiLJXqmUtvWc.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/48MNiLJXqmUtvWc.png"/>
 
 现在我们把6001节点挂掉 看看这三个哨兵会怎么样:
 
-<img src="https://fast.itbaima.net/2023/03/07/ajSAhqb5L9Yuorg.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/ajSAhqb5L9Yuorg.png"/>
 
 可以看到都显示将master切换为6002节点了
 
@@ -224,7 +224,7 @@ slave 接着我们来看看6001的情况:
 因为单机的内存容量最大就那么多 已经没办法再继续扩展了 但是现在又需要存储更多的内容 这时我们就可以让N台机器上的Redis来分别存储各个部分的数据
 (每个Redis可以存储1/N的数据量) 这样就实现了容量的横向扩展 同时每台Redis还可以配一个从节点 这样就可以更好地保证数据的安全性
 
-<img src="https://fast.itbaima.net/2023/03/07/TjCw8DLi1VqYvpZ.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/TjCw8DLi1VqYvpZ.png"/>
 
 那么问题来了 现在用户来了一个写入的请求 数据该写到哪个节点上呢? 我们来研究一下集群的机制:
 
@@ -255,55 +255,55 @@ a在Hash计算后结果为666
 7001 127.0.0.1:7002 127.0.0.1:7003
 这里的--cluster-replicas 1指的是每个节点配一个从节点:
 
-<img src="https://fast.itbaima.net/2023/03/07/7DikHoxKJPve9qa.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/7DikHoxKJPve9qa.png"/>
 
 输入之后 会为你展示客户端默认分配的方案 并且会询问你当前的方案是否合理 可以看到6001/6002/6003都被选为主节点 其他的为从节点
 我们直接输入yes即可:
 
-<img src="https://fast.itbaima.net/2023/03/07/yxZhjouXB79qfDd.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/yxZhjouXB79qfDd.png"/>
 
 最后分配成功 可以看到插槽的分配情况:
 
-<img src="https://fast.itbaima.net/2023/03/07/8kg9TbadF2qyHJW.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/8kg9TbadF2qyHJW.png"/>
 
 现在我们随便连接一个节点 尝试插入一个值:
 
-<img src="https://fast.itbaima.net/2023/03/07/YMf8DtlkCsqBpO1.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/YMf8DtlkCsqBpO1.png"/>
 
 在插入时 出现了一个错误 实际上这就是因为a计算出来的哈希值(插槽) 不归当前节点管 我们得去管这个插槽的节点执行 通过上面的分配情况
 我们可以得到15495属于节点6003管理:
 
-<img src="https://fast.itbaima.net/2023/03/07/EZmR2bLFudSskIf.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/EZmR2bLFudSskIf.png"/>
 
 在6003节点插入成功 当然我们也可以使用集群方式连接 这样我们无论在哪个节点都可以插入 只需要添加-c表示以集群模式访问:
 
-<img src="https://fast.itbaima.net/2023/03/07/mVw7EXFJQOcinIb.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/mVw7EXFJQOcinIb.png"/>
 
 可以看到 在6001节点成功对a的值进行了更新 只不过还是被重定向到了6003节点进行插入
 
 我们可以输入cluster nodes命令来查看当前所有节点的信息:
 
-<img src="https://fast.itbaima.net/2023/03/07/pEJdI2UWTcNZFqu.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/pEJdI2UWTcNZFqu.png"/>
 
 那么现在如果我们让某一个主节点挂掉会怎么样? 现在我们把6001挂掉:
 
-<img src="https://fast.itbaima.net/2023/03/07/zd6L3WosVE8JUqf.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/zd6L3WosVE8JUqf.png"/>
 
 可以看到原本的6001从节点7001 普升为了新的主节点 而之前的6001已经挂了 现在我们将6001重启试试看:
 
-<img src="https://fast.itbaima.net/2023/03/07/eUfYJS8yhVijvaw.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/eUfYJS8yhVijvaw.png"/>
 
 可以看到6001变成了7001的从节点 那么要是6001和7001都挂了呢?
 
-<img src="https://fast.itbaima.net/2023/03/07/9W2BQtMXrUCnySV.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/9W2BQtMXrUCnySV.png"/>
 
 这时我们尝试插入新的数据:
 
-<img src="https://fast.itbaima.net/2023/03/07/S8r5TE7gJ3M6iDW.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/S8r5TE7gJ3M6iDW.png"/>
 
 可以看到 当存在节点不可用时 会无法插入新的数据 现在我们将6001和7001恢复:
 
-<img src="https://fast.itbaima.net/2023/03/07/2RL4GNqSWJXFuME.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/2RL4GNqSWJXFuME.png"/>
 
 可以看到恢复之后又可以继续正常使用了
 
@@ -361,11 +361,11 @@ a在Hash计算后结果为666
 
 这个命令看起来和set命令差不多 但是它有一个机制 就是只有当指定的key不存在的时候 才能进行插入 实际上就是set if not exists的缩写
 
-<img src="https://fast.itbaima.net/2023/03/07/fNCxEJRX61cPsuk.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/fNCxEJRX61cPsuk.png"/>
 
 可以看到 当客户端1设定a之后 客户端2使用setnx会直接失败
 
-<img src="https://fast.itbaima.net/2023/03/07/wpGutcmxEsWFJVn.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/wpGutcmxEsWFJVn.png"/>
 
 当客户端1将a删除之后 客户端2就可以使用setnx成功插入了
 
@@ -377,21 +377,21 @@ a在Hash计算后结果为666
 
 这里使用set命令 最后加一个NX表示是使用setnx的模式 和上面是一样的 但是可以通过EX设定过期时间 这里设置为5秒 也就是说如果5秒还没释放 那么就自动删除
 
-<img src="https://fast.itbaima.net/2023/03/07/eQEIGKONmkB2u6y.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/eQEIGKONmkB2u6y.png"/>
 
 当然 添加了过期时间 带来的好处是显而易见的 但是同时也带来了很多的麻烦 我们来设想一下这种情况:
 
-<img src="https://fast.itbaima.net/2023/03/07/nStuP75RLOmQWUM.png"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/nStuP75RLOmQWUM.png"/>
 
 因此 单纯只是添加过期时间 会出现这种把别人加的锁给卸了的情况 要解决这种问题也很简单 我们卸载的目标就是保证任务只能删除自己加的锁 如果是别人加的锁是没有资格删的
 所以我们可以把a的值指定为我们任务专属的值 比如可以使用UUID之类的 如果在主动删除锁的时候发现值不是我们当前任务指定的 那么说明可能是因为超时 其他任务已经加锁了
 
-<img src="https://fast.itbaima.net/2023/03/07/4DW1K38UqQJdwkf.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/4DW1K38UqQJdwkf.jpg"/>
 
 如果你在学习本篇之前完成了JUC并发编程篇的学习 那么一定会有一个疑惑 如果在超时之前那一刹那进入到释放锁的阶段 获取到值肯定还是自己
 但是在即将执行删除之前 由于超时机制导致被删除并且其他任务也加锁了 那么这时在进行删除 仍然会导致删除其他任务加的锁
 
-<img src="https://fast.itbaima.net/2023/03/07/8I1Atm7BOZC5ifS.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/8I1Atm7BOZC5ifS.jpg"/>
 
 实际上本质还是因为锁的超时时间不太好衡量 如果超时时间能够设定地比较恰当 那么就可以避免这种问题了
 
@@ -435,7 +435,7 @@ a在Hash计算后结果为666
 
 这里没有直接用incr而是我们自己进行计算 方便模拟 可以看到运行结束之后a的值并不是我们想要的:
 
-<img src="https://fast.itbaima.net/2023/03/07/y2Nvi816ut4jpGC.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/y2Nvi816ut4jpGC.jpg"/>
 
 现在我们来给它加一把锁 注意这个锁是基于Redis的 不仅仅只可以用于当前应用 是能够跨系统的:
 
@@ -468,7 +468,7 @@ a在Hash计算后结果为666
 
 可以看到结果没有问题:
 
-<img src="https://fast.itbaima.net/2023/03/07/Gyz1Rc7OWhT5NJK.jpg"/>
+<img src="https://image.itbaima.net/markdown/2023/03/07/Gyz1Rc7OWhT5NJK.jpg"/>
 
 注意 如果用于存放锁的Redis服务器挂了 那么肯定是会出问题的 这个时候我们就可以使用RedLock 它的思路是 在多个Redis服务器上保存锁
 只需要超过半数的Redis服务器获取到锁 那么就真的获取到锁了 这样就算挂掉一部分节点 也能保证正常运行 这里就不做演示了
