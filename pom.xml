@@ -22,7 +22,6 @@
         <module>borrow-service</module>
         <module>commons</module>
         <module>auth-service</module>
-        <module>rabbitmq-service</module>
     </modules>
 
     <properties>
